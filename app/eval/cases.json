@@ -1,0 +1,98 @@
+[
+  {
+    "id": "case01",
+    "name": "北京3日历史游",
+    "input": "我想去北京玩3天，喜欢历史和文化",
+    "expect": {"city": "北京", "days": 3, "themes": ["历史"]}
+  },
+  {
+    "id": "case02",
+    "name": "上海2日网红美食",
+    "input": "去上海2天，网红打卡和美食",
+    "expect": {"city": "上海", "days": 2, "themes": ["网红", "美食"]}
+  },
+  {
+    "id": "case03",
+    "name": "低预算北京游",
+    "input": "去北京3天，预算每天200元，喜欢历史",
+    "expect": {"city": "北京", "days": 3, "budget_per_day": 200}
+  },
+  {
+    "id": "case04",
+    "name": "亲子上海游",
+    "input": "带孩子去上海玩3天，亲子和乐园主题",
+    "expect": {"city": "上海", "days": 3, "themes": ["亲子"]}
+  },
+  {
+    "id": "case05",
+    "name": "特种兵北京",
+    "input": "去北京2天特种兵暴走，历史美食都要",
+    "expect": {"city": "北京", "days": 2, "pace": "intensive"}
+  },
+  {
+    "id": "case06",
+    "name": "轻松上海2日",
+    "input": "去上海轻松玩2天，文艺和夜景",
+    "expect": {"city": "上海", "days": 2, "pace": "relaxed"}
+  },
+  {
+    "id": "case07",
+    "name": "雨天室内偏好",
+    "input": "去北京3天，下雨天多安排室内景点，喜欢博物馆",
+    "expect": {"city": "北京", "days": 3, "themes": ["博物馆"]}
+  },
+  {
+    "id": "case08",
+    "name": "素食约束",
+    "input": "去上海3天，我是素食者，喜欢文艺",
+    "expect": {"city": "上海", "days": 3, "food_constraints": ["素食"]}
+  },
+  {
+    "id": "case09",
+    "name": "缺参测试",
+    "input": "帮我规划旅行",
+    "expect": {"status": "clarifying"}
+  },
+  {
+    "id": "case10",
+    "name": "高预算购物",
+    "input": "去上海2天，预算每天1000元，购物为主",
+    "expect": {"city": "上海", "days": 2, "themes": ["购物"]}
+  },
+  {
+    "id": "case11",
+    "name": "杭州3日园林游",
+    "input": "想去杭州玩3天，看看西湖和园林",
+    "expect": {"city": "杭州", "days": 3, "themes": ["园林"]}
+  },
+  {
+    "id": "case12",
+    "name": "成都美食4日",
+    "input": "去成都4天，主要吃美食和看大熊猫",
+    "expect": {"city": "成都", "days": 4, "themes": ["美食"]}
+  },
+  {
+    "id": "case13",
+    "name": "西安历史2日",
+    "input": "去西安2天，想看兵马俑和古城墙，喜欢历史",
+    "expect": {"city": "西安", "days": 2, "themes": ["历史"]}
+  },
+  {
+    "id": "case14",
+    "name": "广州3日美食",
+    "input": "去广州3天，想吃早茶和各种粤菜美食",
+    "expect": {"city": "广州", "days": 3, "themes": ["美食"]}
+  },
+  {
+    "id": "case15",
+    "name": "重庆夜景2日",
+    "input": "去重庆2天看夜景，洪崖洞和解放碑",
+    "expect": {"city": "重庆", "days": 2, "themes": ["夜景"]}
+  },
+  {
+    "id": "case16",
+    "name": "厦门情侣3日",
+    "input": "和女朋友去厦门3天，文艺和海边",
+    "expect": {"city": "厦门", "days": 3, "travelers_type": "couple"}
+  }
+]
