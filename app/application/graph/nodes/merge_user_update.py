@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.application.graph.nodes.intake import _llm_extract
-from app.parsing.regex_extractors import apply_llm_result, regex_extract
+from app.parsing.regex_extractors import apply_llm_result, apply_text_evidence, regex_extract
 from app.parsing.requirements import check_missing
 
 
@@ -35,6 +35,8 @@ def merge_user_update_node(state: dict[str, Any]) -> dict[str, Any]:
     llm_result = _llm_extract(last_msg)
     if llm_result and isinstance(llm_result, dict):
         apply_llm_result(llm_result, c, p)
+        # 以文本证据兜底，避免模型漂移覆盖用户明确补充的信息
+        apply_text_evidence(last_msg, c, p)
     else:
         regex_extract(last_msg, c, p)
 

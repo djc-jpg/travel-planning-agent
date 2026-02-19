@@ -1,5 +1,6 @@
 """Intake/Clarify 测试"""
 
+import app.application.graph.nodes.intake as intake_module
 from app.agent.nodes.intake import intake_node
 from app.agent.nodes.clarify import clarify_node
 
@@ -43,3 +44,30 @@ def test_clarify_generates_question():
     # LLM 模式可能生成不同措辞，只需确认有追问内容
     content = last_msg["content"]
     assert len(content) > 5, "clarify 应生成有意义的追问"
+
+
+def test_intake_text_evidence_overrides_llm_hallucination(monkeypatch):
+    """用户文本明确给出城市/天数时，应优先于 LLM 漂移结果。"""
+
+    def _fake_llm_extract(_: str) -> dict:
+        return {
+            "city": "杭州",
+            "days": 4,
+            "themes": ["购物"],
+            "travelers_type": "family",
+        }
+
+    monkeypatch.setattr(intake_module, "_llm_extract", _fake_llm_extract)
+
+    state = {
+        "messages": [{"role": "user", "content": "我想去北京玩3天，预算每天500元，喜欢历史和亲子"}],
+        "trip_constraints": {},
+        "user_profile": {},
+    }
+    result = intake_node(state)
+
+    assert result["status"] == "planning"
+    assert result["trip_constraints"]["city"] == "北京"
+    assert result["trip_constraints"]["days"] == 3
+    assert "历史" in result["user_profile"]["themes"]
+    assert "亲子" in result["user_profile"]["themes"]

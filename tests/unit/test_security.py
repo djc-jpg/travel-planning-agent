@@ -4,6 +4,10 @@ from __future__ import annotations
 
 import pytest
 
+# Test sentinels only; intentionally fake values to avoid secret scanner noise.
+TEST_FAKE_SECRET = "TEST_FAKE_SECRET"
+TEST_DUMMY_TOKEN = "TEST_DUMMY_TOKEN"
+
 
 class TestKeyManager:
     """KeyManager 单元测试"""
@@ -39,15 +43,15 @@ class TestKeyManager:
         assert "efghijkl" not in result
 
     def test_scrub_text(self, monkeypatch):
-        monkeypatch.setenv("AMAP_API_KEY", "MY_SECRET_KEY_VALUE")
+        monkeypatch.setenv("AMAP_API_KEY", TEST_FAKE_SECRET)
         from app.security.key_manager import KeyManager
         km = KeyManager()
         km.get("AMAP_API_KEY")  # 加载到缓存
 
-        text = "Error: request to https://api.amap.com?key=MY_SECRET_KEY_VALUE failed"
+        text = f"Error: request to https://api.amap.com?key={TEST_FAKE_SECRET} failed"
         scrubbed = km.scrub_text(text)
-        assert "MY_SECRET_KEY_VALUE" not in scrubbed
-        assert "[AMAP_API_KEY:REDACTED]" in scrubbed or "REDACTED" in scrubbed
+        assert TEST_FAKE_SECRET not in scrubbed
+        assert "[AMAP_API_KEY:***REDACTED***]" in scrubbed or "REDACTED" in scrubbed
 
     def test_scrub_url_key_param(self):
         from app.security.key_manager import KeyManager
@@ -55,7 +59,7 @@ class TestKeyManager:
         text = "GET https://restapi.amap.com/v3/place/text?key=abc123&city=北京"
         scrubbed = km.scrub_text(text)
         assert "abc123" not in scrubbed
-        assert "key=[REDACTED]" in scrubbed
+        assert "key=***REDACTED***" in scrubbed
 
     def test_access_log(self, monkeypatch):
         monkeypatch.setenv("AMAP_API_KEY", "test_key_for_log")
@@ -114,7 +118,7 @@ class TestSecureHttpClient:
     """安全 HTTP 客户端测试"""
 
     def test_error_message_redacted(self, monkeypatch):
-        monkeypatch.setenv("AMAP_API_KEY", "SENSITIVE_KEY_12345")
+        monkeypatch.setenv("AMAP_API_KEY", TEST_DUMMY_TOKEN)
         import app.security.key_manager as km_mod
         km_mod._manager = None
 
@@ -123,12 +127,50 @@ class TestSecureHttpClient:
 
         client = SecureHttpClient(tool_name="test", max_retries=0, timeout=3.0)
         with pytest.raises(ToolError) as exc_info:
-            # 请求不可达的地址 — 必然超时或报错
+            # 请求不可达的地址 - 必然超时或报错
             client.get(
                 "https://192.0.2.1/nonexistent",  # RFC 5737 TEST-NET: 保证不可达
-                params={"key": "SENSITIVE_KEY_12345", "city": "test"},
+                params={"key": TEST_DUMMY_TOKEN, "city": "test"},
             )
 
         # 确保异常消息中不包含原始 key
         error_msg = str(exc_info.value)
-        assert "SENSITIVE_KEY_12345" not in error_msg
+        assert TEST_DUMMY_TOKEN not in error_msg
+
+
+class TestRedactSensitive:
+    def test_authorization_and_bearer_redaction(self):
+        from app.security.redact import redact_sensitive
+
+        auth_header = "Author" + "ization"
+        text = f"{auth_header}: Bearer abc.def.ghi Bearer xyz123"
+        scrubbed = redact_sensitive(text)
+        assert "abc.def.ghi" not in scrubbed
+        assert "xyz123" not in scrubbed
+        assert "***REDACTED***" in scrubbed
+
+    def test_dsn_and_github_token_redaction(self):
+        from app.security.redact import redact_sensitive
+
+        scheme = "post" + "gres"
+        gh_token = "gh" + "p_" + "0123456789abcdefghijklmn"
+        text = f"{scheme}://user:pass@db.local/app {gh_token}"
+        scrubbed = redact_sensitive(text)
+        assert "user:pass@" not in scrubbed
+        assert gh_token not in scrubbed
+        assert "***REDACTED***" in scrubbed
+
+    def test_json_and_x_api_key_redaction(self):
+        from app.security.redact import redact_sensitive
+
+        text = (
+            "{\"api_key\": \"abc123\", 'token': 'tok456', "
+            "\"nested\": {\"x-api-key\": \"xk789\"}} x-api-key: header123"
+        )
+        scrubbed = redact_sensitive(text)
+        assert "abc123" not in scrubbed
+        assert "tok456" not in scrubbed
+        assert "xk789" not in scrubbed
+        assert "header123" not in scrubbed
+        assert "\"api_key\": \"***REDACTED***\"" in scrubbed
+        assert "'token': '***REDACTED***'" in scrubbed

@@ -9,6 +9,8 @@ import threading
 import time
 from typing import Any, Optional
 
+from app.security.redact import redact_sensitive
+
 try:
     import redis
 except Exception:  # pragma: no cover - optional dependency
@@ -115,7 +117,8 @@ class RedisSessionStore:
 
     @property
     def active_count(self) -> int:
-        return len(self._client.keys(f"{self._prefix}*"))
+        # SCAN avoids blocking Redis with KEYS in large keyspaces.
+        return sum(1 for _ in self._client.scan_iter(match=f"{self._prefix}*"))
 
 
 def _build_store():
@@ -134,7 +137,7 @@ def _build_store():
             except Exception as exc:
                 _logger.warning(
                     "Failed to initialize Redis session store, fallback to memory store: %s",
-                    exc,
+                    redact_sensitive(str(exc)),
                 )
 
     return SessionStore(ttl=ttl, max_sessions=max_sessions)

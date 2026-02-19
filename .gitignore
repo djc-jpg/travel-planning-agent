@@ -15,6 +15,9 @@ ENV/
 
 # ── Environment variables ──
 .env
+.env.*
+!.env.example
+!.env.prerelease.example
 
 # ── IDE ──
 .vscode/
@@ -30,6 +33,7 @@ desktop.ini
 
 # ── Output ──
 itinerary_output.json
+app/eval/reports/
 
 # ── Test / Coverage ──
 .pytest_cache/
@@ -38,4 +42,23 @@ htmlcov/
 coverage.xml
 
 # ── Docker ──
-.dockerignore
+
+# Secrets / Credentials
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_ed25519
+.npmrc
+.pypirc
+.netrc
+.aws/
+.azure/
+.gcp/
+*.tfvars
+terraform.tfstate*
+secrets.*
+*.secret

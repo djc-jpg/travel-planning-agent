@@ -11,6 +11,7 @@ from app.parsing.regex_extractors import (
     TRANSPORT_MAP,
     TRAVELERS_MAP,
     apply_llm_result,
+    apply_text_evidence,
     extract_budget,
     extract_city,
     extract_days,
@@ -100,6 +101,8 @@ def intake_node(state: dict[str, Any]) -> dict[str, Any]:
 
     if llm_result and isinstance(llm_result, dict):
         apply_llm_result(llm_result, c, p)
+        # 以文本证据兜底，避免 LLM 将“北京3天”误改成其他城市/天数
+        apply_text_evidence(last_msg, c, p)
     else:
         # ── 降级到正则提取 ──
         regex_extract(last_msg, c, p)

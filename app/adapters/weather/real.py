@@ -1,26 +1,20 @@
-"""Real 天气适配器 — 接入高德地图天气查询 API
-
-环境变量: AMAP_API_KEY
-高德天气 API 文档: https://lbs.amap.com/api/webservice/guide/api/weatherinfo
-
-说明:
-  - 高德天气 API 免费，extensions=all 返回 4 天预报
-  - 超过 4 天的部分自动用 mock 兜底补充
-  - 城市参数使用 adcode（行政区划代码），内置主要城市映射
-"""
+"""Real weather adapter backed by AMap weather API."""
 
 from __future__ import annotations
 
+import logging
+import os
 from datetime import datetime, timedelta
 
 from app.security.amap_signer import sign_amap_params
 from app.security.http_client import SecureHttpClient
 from app.security.key_manager import get_key_manager
+from app.security.redact import redact_sensitive
 from app.tools.interfaces import DayWeather, WeatherInput, WeatherResult, ToolError
 
 _BASE_URL = "https://restapi.amap.com/v3/weather/weatherInfo"
+_logger = logging.getLogger("trip-agent.weather")
 
-# 城市名 → 高德 adcode 映射（主要旅游城市）
 _CITY_ADCODE: dict[str, str] = {
     "北京": "110000",
     "上海": "310000",
@@ -39,156 +33,159 @@ _CITY_ADCODE: dict[str, str] = {
     "三亚": "460200",
     "大理": "532900",
     "青岛": "370200",
-    "桂林": "450300",
     "昆明": "530100",
     "拉萨": "540100",
-    "哈尔滨": "230100",
     "天津": "120000",
-    "沈阳": "210100",
-    "郑州": "410100",
-    "济南": "370100",
-    "福州": "350100",
-    "合肥": "340100",
-    "南昌": "360100",
-    "贵阳": "520100",
-    "海口": "460100",
-    "银川": "640100",
-    "西宁": "630100",
-    "兰州": "620100",
-    "呼和浩特": "150100",
-    "乌鲁木齐": "650100",
-    "太原": "140100",
-    "石家庄": "130100",
-    "长春": "220100",
-    "南宁": "450100",
 }
 
-# 高德天气状况 → 是否适合户外
-_BAD_WEATHER_KEYWORDS = {"雨", "雪", "雾", "霾", "暴", "冰雹", "沙尘"}
+_BAD_WEATHER_KEYWORDS = {"雨", "雪", "雷", "暴", "冰雹", "沙尘"}
+
+
+def _strict_external_enabled() -> bool:
+    value = os.getenv("STRICT_EXTERNAL_DATA", "")
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _get_api_key() -> str:
-    """通过 KeyManager 获取 Key"""
     km = get_key_manager()
     key = km.get_amap_key(required=False)
     if not key:
-        raise ToolError("real_weather", "未设置 AMAP_API_KEY 环境变量")
+        raise ToolError("real_weather", "AMAP_API_KEY is not configured")
     return key
+
+
+def _mock_weather(params: WeatherInput) -> WeatherResult:
+    from app.adapters.weather.mock import get_weather as mock_get_weather
+
+    return mock_get_weather(params)
 
 
 _http = SecureHttpClient(tool_name="real_weather", max_retries=1)
 
 
 def _is_outdoor_friendly(condition: str) -> bool:
-    """判断天气是否适合户外"""
-    return not any(kw in condition for kw in _BAD_WEATHER_KEYWORDS)
+    return not any(keyword in condition for keyword in _BAD_WEATHER_KEYWORDS)
 
 
 def _simplify_condition(condition: str) -> str:
-    """统一天气描述格式"""
-    # 高德返回的天气如 "多云"、"小雨"、"晴" 等，基本可直接使用
     return condition if condition else "未知"
 
 
 def get_weather(params: WeatherInput) -> WeatherResult:
-    """
-    调用高德天气 API 获取天气预报。
-
-    - extensions=all: 返回未来 4 天预报（含当天）
-    - 超过 4 天的部分用 mock 兜底
-    - 找不到 adcode 时回退 mock
-    """
     _get_api_key()
+    strict_external = _strict_external_enabled()
 
-    # 查找城市 adcode
     adcode = _CITY_ADCODE.get(params.city)
     if not adcode:
-        # 未收录城市，回退 mock
-        from app.adapters.weather.mock import get_weather as mock_get_weather
-        return mock_get_weather(params)
+        if strict_external:
+            raise ToolError("real_weather", f"city is not mapped to AMap adcode: {params.city}")
+        _logger.warning("City not mapped in weather adapter, fallback to mock: %s", params.city)
+        return _mock_weather(params)
 
     try:
-        request_params = sign_amap_params({
-            "city": adcode,
-            "extensions": "all",
-            "output": "json",
-        })
+        request_params = sign_amap_params(
+            {
+                "city": adcode,
+                "extensions": "all",
+                "output": "json",
+            }
+        )
         data = _http.get(_BASE_URL, params=request_params)
-    except Exception:
-        # 网络失败，回退 mock
-        from app.adapters.weather.mock import get_weather as mock_get_weather
-        return mock_get_weather(params)
+    except Exception as exc:
+        if strict_external:
+            raise ToolError("real_weather", f"amap request failed: {redact_sensitive(str(exc))}") from None
+        _logger.warning("Weather request failed, fallback to mock: %s", redact_sensitive(str(exc)))
+        return _mock_weather(params)
 
     if data.get("status") != "1":
-        from app.adapters.weather.mock import get_weather as mock_get_weather
-        return mock_get_weather(params)
+        info = data.get("info", "unknown")
+        code = data.get("infocode", "")
+        if strict_external:
+            raise ToolError("real_weather", f"amap returned failure: {info} ({code})")
+        _logger.warning("AMap weather status!=1, fallback to mock: %s (%s)", info, code)
+        return _mock_weather(params)
 
-    # 解析预报数据
     forecasts_raw = data.get("forecasts", [])
     if not forecasts_raw:
-        from app.adapters.weather.mock import get_weather as mock_get_weather
-        return mock_get_weather(params)
+        if strict_external:
+            raise ToolError("real_weather", "amap response has no forecast data")
+        _logger.warning("AMap weather returned empty forecast, fallback to mock")
+        return _mock_weather(params)
 
-    casts = forecasts_raw[0].get("casts", [])  # 最多 4 天
+    casts = forecasts_raw[0].get("casts", [])
+    if not casts:
+        if strict_external:
+            raise ToolError("real_weather", "amap response has empty casts")
+        _logger.warning("AMap weather returned empty casts, fallback to mock")
+        return _mock_weather(params)
 
-    # 解析用户请求的起始日期
     try:
         start_date = datetime.strptime(params.date_start, "%Y-%m-%d").date()
     except ValueError:
         start_date = datetime.now().date()
 
     forecasts: list[DayWeather] = []
-
-    for i in range(params.days):
-        target_date = start_date + timedelta(days=i)
-        # 查找 API 返回中是否有匹配日期
+    for index in range(params.days):
+        target_date = start_date + timedelta(days=index)
         matched = None
+
         for cast in casts:
             cast_date_str = cast.get("date", "")
             try:
                 cast_date = datetime.strptime(cast_date_str, "%Y-%m-%d").date()
-                if cast_date == target_date:
-                    matched = cast
-                    break
             except ValueError:
                 continue
+            if cast_date == target_date:
+                matched = cast
+                break
 
         if matched:
-            # 使用白天天气
             condition = _simplify_condition(matched.get("dayweather", ""))
             try:
                 temp_high = float(matched.get("daytemp", 0))
-            except (ValueError, TypeError):
+            except (TypeError, ValueError):
                 temp_high = 0.0
             try:
                 temp_low = float(matched.get("nighttemp", 0))
-            except (ValueError, TypeError):
+            except (TypeError, ValueError):
                 temp_low = 0.0
 
-            forecasts.append(DayWeather(
-                date=target_date.strftime("%Y-%m-%d"),
-                condition=condition,
-                temp_high=temp_high,
-                temp_low=temp_low,
-                is_outdoor_friendly=_is_outdoor_friendly(condition),
-            ))
-        else:
-            # 超出 API 预报范围，用 mock 补充该天
-            from app.adapters.weather.mock import get_weather as mock_get_weather
-            mock_result = mock_get_weather(WeatherInput(
+            forecasts.append(
+                DayWeather(
+                    date=target_date.strftime("%Y-%m-%d"),
+                    condition=condition,
+                    temp_high=temp_high,
+                    temp_low=temp_low,
+                    is_outdoor_friendly=_is_outdoor_friendly(condition),
+                )
+            )
+            continue
+
+        if strict_external:
+            raise ToolError(
+                "real_weather",
+                f"forecast horizon exceeded for {params.days} days from {params.date_start}",
+            )
+
+        mock_result = _mock_weather(
+            WeatherInput(
                 city=params.city,
                 date_start=target_date.strftime("%Y-%m-%d"),
                 days=1,
-            ))
-            if mock_result.forecasts:
-                forecasts.append(mock_result.forecasts[0])
-            else:
-                forecasts.append(DayWeather(
+            )
+        )
+        if mock_result.forecasts:
+            forecasts.append(mock_result.forecasts[0])
+        else:
+            forecasts.append(
+                DayWeather(
                     date=target_date.strftime("%Y-%m-%d"),
                     condition="未知",
                     temp_high=20,
                     temp_low=10,
                     is_outdoor_friendly=True,
-                ))
+                )
+            )
 
     return WeatherResult(city=params.city, forecasts=forecasts)
+

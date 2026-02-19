@@ -130,6 +130,36 @@ def regex_extract(text: str, constraints: dict, profile: dict) -> None:
     profile["food_constraints"] = food
 
 
+def apply_text_evidence(text: str, constraints: dict, profile: dict) -> None:
+    """Apply deterministic values explicitly mentioned in user text.
+
+    This is intended as a safety guard after LLM extraction so that explicit
+    user-provided facts (for example city/days) are not overwritten by model drift.
+    """
+    c_from_text: dict = {}
+    p_from_text: dict = {}
+    regex_extract(text, c_from_text, p_from_text)
+
+    for key in ("city", "days", "budget_per_day", "total_budget", "pace", "transport_mode"):
+        if key in c_from_text:
+            constraints[key] = c_from_text[key]
+
+    if p_from_text.get("travelers_type"):
+        profile["travelers_type"] = p_from_text["travelers_type"]
+
+    themes = profile.get("themes", [])
+    for theme in p_from_text.get("themes", []):
+        if theme not in themes:
+            themes.append(theme)
+    profile["themes"] = themes
+
+    food_constraints = profile.get("food_constraints", [])
+    for item in p_from_text.get("food_constraints", []):
+        if item not in food_constraints:
+            food_constraints.append(item)
+    profile["food_constraints"] = food_constraints
+
+
 def apply_llm_result(result: dict, constraints: dict, profile: dict) -> None:
     """将 LLM 提取结果合并到 constraints / profile，就地更新。"""
     if result.get("city"):

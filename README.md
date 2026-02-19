@@ -222,3 +222,32 @@ pyproject.toml                # 项目元数据
 - **LLM 提供商**：设置 `LLM_BASE_URL` + `LLM_API_KEY` 接入任意 OpenAI 兼容端点
 - **向量检索**：安装 `faiss-cpu` + `sentence-transformers` 启用 hybrid retrieval
 - **前端对接**：API 已启用 CORS，可直接从浏览器/前端应用调用
+
+## Pre-release Quick Start
+
+1. Copy prerelease env template:
+
+```bash
+cp .env.prerelease.example .env.prerelease
+```
+
+2. Start prerelease stack and run preflight checks:
+
+```powershell
+.\scripts\prerelease.ps1
+```
+
+3. Stop prerelease stack:
+
+```powershell
+.\scripts\prerelease-down.ps1
+```
+
+4. If Docker is not installed, run local prerelease checks:
+
+```powershell
+.\scripts\prerelease-local.ps1
+```
+
+`prerelease-local.ps1` defaults to in-memory backend fallback for single-machine checks.
+Use `-StrictRedis` when you want Redis connectivity to be mandatory.

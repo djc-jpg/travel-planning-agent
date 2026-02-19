@@ -12,10 +12,10 @@
 from __future__ import annotations
 
 import os
-import re
 import time
 from typing import Optional
 
+from app.security.redact import redact_sensitive
 from app.shared.exceptions import KeyMissingError
 
 class _KeyEntry:
@@ -99,18 +99,11 @@ class KeyManager:
         从任意文本中擦除所有已知 Key 值。
         用于日志/异常消息安全输出。
         """
-        result = text
+        result = str(text) if text is not None else ""
         for name, entry in self._keys.items():
             if entry.value and entry.value in result:
-                result = result.replace(entry.value, f"[{name}:REDACTED]")
-        # 额外：用正则擦除 URL 中可能的 key= 参数
-        result = re.sub(
-            r'([?&])key=[^&\s]+',
-            r'\1key=[REDACTED]',
-            result,
-            flags=re.IGNORECASE,
-        )
-        return result
+                result = result.replace(entry.value, f"[{name}:***REDACTED***]")
+        return redact_sensitive(result)
 
     # ── 审计 ──────────────────────────────────────────
 

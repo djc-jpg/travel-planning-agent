@@ -49,7 +49,7 @@ class StructuredLogger:
                     "event": "logger_internal_error",
                     "trace_id": self.trace_id,
                     "timestamp": time.time(),
-                    "error": str(exc),
+                    "error": self._scrub(str(exc)),
                 }
                 sys.stderr.write(json.dumps(fallback, ensure_ascii=False, default=str) + "\n")
                 sys.stderr.flush()
