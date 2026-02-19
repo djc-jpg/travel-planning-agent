@@ -12,6 +12,9 @@ build/
 .venv/
 venv/
 ENV/
+env/
+env.bak/
+venv.bak/
 
 # ── Environment variables ──
 .env
@@ -40,6 +43,15 @@ app/eval/reports/
 htmlcov/
 .coverage
 coverage.xml
+.tox/
+.nox/
+.hypothesis/
+
+# ── Static analysis / tooling ──
+.ruff_cache/
+.mypy_cache/
+.pyre/
+.pytype/
 
 # ── Docker ──
 
