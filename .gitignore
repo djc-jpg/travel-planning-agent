@@ -74,3 +74,9 @@ id_ed25519
 terraform.tfstate*
 secrets.*
 *.secret
+
+# Local runtime artifacts
+*.log
+data/*.sqlite3
+data/*.sqlite
+data/*.db

@@ -2,8 +2,11 @@ import type {
   ChatRequest,
   DiagnosticsResponse,
   HealthResponse,
+  PlanExportResponse,
   PlanRequest,
-  PlanResponse
+  PlanResponse,
+  SessionHistoryResponse,
+  SessionListResponse
 } from "@/lib/types/api";
 
 import { ApiError } from "./errors";
@@ -28,16 +31,7 @@ const DEFAULT_RETRY_POLICY: RetryPolicy = {
 };
 
 function getBaseUrl(): string {
-  const value = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
-  if (!value) {
-    return "http://localhost:8000";
-  }
-  return value.endsWith("/") ? value.slice(0, -1) : value;
-}
-
-function getDefaultAuthToken(): string | undefined {
-  const value = process.env.NEXT_PUBLIC_API_BEARER_TOKEN?.trim();
-  return value ? value : undefined;
+  return "/api/backend";
 }
 
 function sleep(ms: number): Promise<void> {
@@ -74,7 +68,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const retryPolicy = options.retryPolicy ?? DEFAULT_RETRY_POLICY;
   const baseUrl = getBaseUrl();
-  const authToken = options.authToken ?? getDefaultAuthToken();
+  const authToken = options.authToken?.trim();
 
   for (let attempt = 0; ; attempt += 1) {
     const controller = new AbortController();
@@ -150,6 +144,31 @@ export const apiClient = {
     return request<DiagnosticsResponse>("/diagnostics", {
       method: "GET",
       authToken
+    });
+  },
+  async sessionHistory(sessionId: string, limit = 20): Promise<SessionHistoryResponse> {
+    const safeLimit = Math.max(1, Math.min(100, limit));
+    const encoded = encodeURIComponent(sessionId);
+    return request<SessionHistoryResponse>(`/sessions/${encoded}/history?limit=${safeLimit}`, {
+      method: "GET"
+    });
+  },
+  async sessions(limit = 20): Promise<SessionListResponse> {
+    const safeLimit = Math.max(1, Math.min(100, limit));
+    return request<SessionListResponse>(`/sessions?limit=${safeLimit}`, {
+      method: "GET"
+    });
+  },
+  async planExport(requestId: string): Promise<PlanExportResponse> {
+    const encoded = encodeURIComponent(requestId);
+    return request<PlanExportResponse>(`/plans/${encoded}/export`, {
+      method: "GET"
+    });
+  },
+  async planExportMarkdown(requestId: string): Promise<string> {
+    const encoded = encodeURIComponent(requestId);
+    return request<string>(`/plans/${encoded}/export?format=markdown`, {
+      method: "GET"
     });
   }
 };

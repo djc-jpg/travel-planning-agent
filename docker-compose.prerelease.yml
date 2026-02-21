@@ -15,9 +15,10 @@ services:
     env_file:
       - .env.prerelease
     environment:
+      ALLOW_UNAUTHENTICATED_API: ${ALLOW_UNAUTHENTICATED_API:-false}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       RATE_LIMIT_REDIS_URL: ${RATE_LIMIT_REDIS_URL:-redis://redis:6379/0}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
     ports:
       - "8000:8000"
     depends_on:
@@ -28,15 +29,11 @@ services:
   frontend:
     build:
       context: ./frontend
-      args:
-        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
     environment:
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
-      NEXT_PUBLIC_API_BEARER_TOKEN: ${NEXT_PUBLIC_API_BEARER_TOKEN:-}
+      API_BASE_URL: ${API_BASE_URL:-http://backend:8000}
     ports:
       - "3000:3000"
     depends_on:
       backend:
         condition: service_healthy
     restart: unless-stopped
-

@@ -27,6 +27,11 @@ _DSN_CREDENTIAL_RE = re.compile(
 )
 _OPENAI_DASHSCOPE_KEY_RE = re.compile(r"\bsk-[A-Za-z0-9_-]{8,}\b")
 _GITHUB_TOKEN_RE = re.compile(r"\b(?:ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\b")
+_PHONE_RE = re.compile(r"\b1[3-9]\d{9}\b")
+_CN_ID_RE = re.compile(r"\b\d{17}[\dXx]\b")
+_ADDRESS_RE = re.compile(
+    r"(?P<prefix>(?:地址|住址|详细地址)\s*[:：]?\s*)(?P<value>[^\n,，;；]{6,120})"
+)
 
 
 def _replace_value(pattern: re.Pattern[str], text: str) -> str:
@@ -62,6 +67,9 @@ def redact_sensitive(text: str) -> str:
         redacted = pattern.sub(_REDACTED, redacted)
 
     redacted = _DSN_CREDENTIAL_RE.sub(rf"\g<prefix>{_REDACTED}@", redacted)
+    redacted = _PHONE_RE.sub(_REDACTED, redacted)
+    redacted = _CN_ID_RE.sub(_REDACTED, redacted)
+    redacted = _replace_value(_ADDRESS_RE, redacted)
     return redacted
 
 

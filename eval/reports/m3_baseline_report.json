@@ -1,0 +1,822 @@
+{
+  "generated_at": "2026-02-19T20:48:05",
+  "cases_file": "eval\\cases.json",
+  "summary": {
+    "total_cases": 15,
+    "passed_cases": 10,
+    "average_score": 0.9037,
+    "pass_rate": 0.6667,
+    "metric_pass_rates": {
+      "budget_realism": 0.9285714285714286,
+      "constraint_satisfaction": 0.8571428571428571,
+      "duplication_backtracking": 0.6428571428571429,
+      "expected_properties_match": 0.6428571428571429,
+      "fact_verifiability": 1.0,
+      "schema_requirement": 1.0,
+      "schema_valid": 1.0,
+      "status_match": 1.0,
+      "structured_output_quality": 1.0,
+      "travel_feasibility": 1.0
+    },
+    "top_failure_modes": [
+      {
+        "check": "duplication_backtracking",
+        "count": 5
+      },
+      {
+        "check": "expected_properties_match",
+        "count": 5
+      },
+      {
+        "check": "constraint_satisfaction",
+        "count": 2
+      },
+      {
+        "check": "budget_realism",
+        "count": 1
+      }
+    ],
+    "priority_suggestions": [
+      "优先加强地理聚类与去重，减少跨区折返。",
+      "优先检查case预期字段与产品行为的一致性。",
+      "优先补齐约束解析与硬约束执行（days/budget/must_visit/avoid）。"
+    ]
+  },
+  "cases": [
+    {
+      "id": "c01_beijing_4d_cny_peak",
+      "user_request": "请做一个北京4日春节行程：2位成人，历史文化为主，住东城区，公共交通，希望可执行且少折返。",
+      "score": 1.0,
+      "status": "PASS",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": true,
+          "evidence": "duplicates=False, cluster_switches=2, limit=4"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": true,
+          "evidence": "ok"
+        }
+      ]
+    },
+    {
+      "id": "c02_beijing_4d_offseason_rain",
+      "user_request": "请做北京4天淡季行程，最近有雨，优先室内和雨天可替代方案，2位成人公共交通。",
+      "score": 1.0,
+      "status": "PASS",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": true,
+          "evidence": "duplicates=False, cluster_switches=2, limit=4"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": true,
+          "evidence": "ok"
+        }
+      ]
+    },
+    {
+      "id": "c03_shanghai_3d_family",
+      "user_request": "上海3日亲子行程，带一个8岁孩子，优先乐园和互动性高的景点，节奏不要太赶。",
+      "score": 0.7778,
+      "status": "WARN",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": false,
+          "evidence": "duplicates=True, cluster_switches=0, limit=3"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": false,
+          "evidence": "missing_backup_days=1"
+        }
+      ]
+    },
+    {
+      "id": "c04_chengdu_4d_food_relaxed",
+      "user_request": "成都4天，主要吃美食，节奏轻松，不想每天走很多路，2位成人。",
+      "score": 0.8889,
+      "status": "PASS",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": false,
+          "evidence": "duplicates=True, cluster_switches=0, limit=4"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": true,
+          "evidence": "ok"
+        }
+      ]
+    },
+    {
+      "id": "c05_xian_3d_history_terracotta",
+      "user_request": "西安3日历史文化行程，必去秦始皇兵马俑，公共交通优先。",
+      "score": 1.0,
+      "status": "PASS",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": true,
+          "evidence": "duplicates=False, cluster_switches=0, limit=3"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": true,
+          "evidence": "ok"
+        }
+      ]
+    },
+    {
+      "id": "c06_beijing_ultra_low_budget",
+      "user_request": "春节北京4天，2位成人，总预算只有200元，历史景点为主，请给可行方案。",
+      "score": 1.0,
+      "status": "PASS",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": true,
+          "evidence": "duplicates=False, cluster_switches=1, limit=4"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": true,
+          "evidence": "ok"
+        }
+      ]
+    },
+    {
+      "id": "c07_beijing_mobility_limit",
+      "user_request": "北京3日，老人出行，行动不便，尽量少走路，单日不要安排太满，要有休息和备选。",
+      "score": 1.0,
+      "status": "PASS",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": true,
+          "evidence": "duplicates=False, cluster_switches=2, limit=3"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": true,
+          "evidence": "ok"
+        }
+      ]
+    },
+    {
+      "id": "c08_beijing_free_only",
+      "user_request": "北京2日只去免费景点，不要收费门票，喜欢历史文化，公共交通。",
+      "score": 0.8889,
+      "status": "PASS",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": true,
+          "evidence": "duplicates=False, cluster_switches=1, limit=2"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": false,
+          "evidence": "non_free=故宫博物院,天安门城楼,中山公园,景山公园,北海公园"
+        }
+      ]
+    },
+    {
+      "id": "c09_beijing_1d_tight_must3",
+      "user_request": "北京只有1天时间，但必须去故宫博物院、天安门广场、天安门城楼，请给可执行的紧凑方案。",
+      "score": 0.7778,
+      "status": "WARN",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": false,
+          "evidence": "missing_must_visit=天安门广场,天安门城楼"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": true,
+          "evidence": "duplicates=False, cluster_switches=2, limit=2"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": false,
+          "evidence": "missing_pois=天安门广场,天安门城楼"
+        }
+      ]
+    },
+    {
+      "id": "c10_shanghai_3d_rain_museum",
+      "user_request": "上海3天，雨天为主，偏好博物馆和室内展馆，2位成人。",
+      "score": 0.7778,
+      "status": "WARN",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": false,
+          "evidence": "duplicates=True, cluster_switches=0, limit=3"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": false,
+          "evidence": "missing_backup_days=1"
+        }
+      ]
+    },
+    {
+      "id": "c11_chengdu_4d_no_spicy",
+      "user_request": "成都4天，我不吃辣，想吃本地美食并看熊猫，节奏适中。",
+      "score": 0.7778,
+      "status": "WARN",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": false,
+          "evidence": "duplicates=True, cluster_switches=0, limit=4"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": false,
+          "evidence": "missing_pois=大熊猫基地"
+        }
+      ]
+    },
+    {
+      "id": "c12_xian_3d_free_bias",
+      "user_request": "西安3天，预算紧张，尽量多安排免费或低价历史景点。",
+      "score": 0.7778,
+      "status": "WARN",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": false,
+          "evidence": "over_budget_without_warning"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": false,
+          "evidence": "missing_budget_warning"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": true,
+          "evidence": "duplicates=False, cluster_switches=0, limit=3"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": true,
+          "evidence": "ok"
+        }
+      ]
+    },
+    {
+      "id": "c13_beijing_elderly_relaxed",
+      "user_request": "北京3天带两位老人，想要历史文化但每天不超过晚上7点结束，尽量地铁直达。",
+      "score": 1.0,
+      "status": "PASS",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": true,
+          "evidence": "duplicates=False, cluster_switches=2, limit=3"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": true,
+          "evidence": "ok"
+        }
+      ]
+    },
+    {
+      "id": "c14_shanghai_2d_photo_night",
+      "user_request": "上海2天拍照路线，想要外滩和陆家嘴夜景，白天不想跑太远。",
+      "score": 0.8889,
+      "status": "PASS",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": false,
+          "evidence": "duplicates=True, cluster_switches=0, limit=2"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": true,
+          "evidence": "ok"
+        }
+      ]
+    },
+    {
+      "id": "c15_missing_requirements",
+      "user_request": "帮我规划一个旅行",
+      "score": 1.0,
+      "status": "PASS",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=clarifying, expected=clarifying"
+        },
+        {
+          "name": "schema_requirement",
+          "passed": true,
+          "evidence": "itinerary omitted for non-done status"
+        }
+      ]
+    }
+  ]
+}

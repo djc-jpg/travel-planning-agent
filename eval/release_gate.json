@@ -1,0 +1,18 @@
+{
+  "schema_valid_rate": 1.0,
+  "clarifying_correctness": ">=0.95",
+  "constraint_satisfaction_rate": ">=0.90",
+  "travel_feasibility_rate": ">=0.90",
+  "plan_success_rate": ">=0.99",
+  "unknown_fact_rate": "<=0.20",
+  "l0_real_routing_ratio": ">=0.30",
+  "fallback_rate": "<=0.10",
+  "verified_fact_ratio": ">=0.60",
+  "routing_fixture_rate": "<=0.70",
+  "infrastructure_poi_rate": "==0.0",
+  "business_poi_leak_rate": "==0.0",
+  "food_night_coverage_rate": ">=0.90",
+  "avoid_constraint_pass_rate": ">=1.00",
+  "concurrency_isolation": "==1.00",
+  "p95_latency_ms": "<6000"
+}

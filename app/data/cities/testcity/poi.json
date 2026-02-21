@@ -1,0 +1,111 @@
+[
+  {
+    "id": "tc_001",
+    "name": "TestCity Museum",
+    "city": "testcity",
+    "lat": 31.1001,
+    "lon": 121.1001,
+    "themes": ["history", "culture"],
+    "duration_hours": 2.0,
+    "cost": 0.0,
+    "cluster": "central",
+    "metadata_source": "city_testcity_seed",
+    "fact_sources": {
+      "ticket_price": "unknown",
+      "reservation_required": "unknown",
+      "open_hours": "unknown",
+      "closed_rules": "unknown"
+    }
+  },
+  {
+    "id": "tc_002",
+    "name": "TestCity Old Street",
+    "city": "testcity",
+    "lat": 31.1010,
+    "lon": 121.1020,
+    "themes": ["food", "culture"],
+    "duration_hours": 1.5,
+    "cost": 0.0,
+    "cluster": "central",
+    "metadata_source": "city_testcity_seed",
+    "fact_sources": {
+      "ticket_price": "unknown",
+      "reservation_required": "unknown",
+      "open_hours": "unknown",
+      "closed_rules": "unknown"
+    }
+  },
+  {
+    "id": "tc_003",
+    "name": "TestCity Lake Park",
+    "city": "testcity",
+    "lat": 31.1040,
+    "lon": 121.1040,
+    "themes": ["nature"],
+    "duration_hours": 2.0,
+    "cost": 0.0,
+    "cluster": "lake",
+    "metadata_source": "city_testcity_seed",
+    "fact_sources": {
+      "ticket_price": "unknown",
+      "reservation_required": "unknown",
+      "open_hours": "unknown",
+      "closed_rules": "unknown"
+    }
+  },
+  {
+    "id": "tc_004",
+    "name": "TestCity Science Center",
+    "city": "testcity",
+    "lat": 31.1070,
+    "lon": 121.1050,
+    "themes": ["science", "family"],
+    "duration_hours": 2.0,
+    "cost": 0.0,
+    "cluster": "tech",
+    "metadata_source": "city_testcity_seed",
+    "fact_sources": {
+      "ticket_price": "unknown",
+      "reservation_required": "unknown",
+      "open_hours": "unknown",
+      "closed_rules": "unknown"
+    }
+  },
+  {
+    "id": "tc_005",
+    "name": "TestCity Art Hub",
+    "city": "testcity",
+    "lat": 31.1090,
+    "lon": 121.1080,
+    "themes": ["art"],
+    "duration_hours": 1.5,
+    "cost": 0.0,
+    "cluster": "arts",
+    "metadata_source": "city_testcity_seed",
+    "fact_sources": {
+      "ticket_price": "unknown",
+      "reservation_required": "unknown",
+      "open_hours": "unknown",
+      "closed_rules": "unknown"
+    }
+  },
+  {
+    "id": "tc_006",
+    "name": "TestCity River Walk",
+    "city": "testcity",
+    "lat": 31.1110,
+    "lon": 121.1100,
+    "themes": ["night", "nature"],
+    "duration_hours": 1.5,
+    "cost": 0.0,
+    "cluster": "river",
+    "metadata_source": "city_testcity_seed",
+    "fact_sources": {
+      "ticket_price": "unknown",
+      "reservation_required": "unknown",
+      "open_hours": "unknown",
+      "closed_rules": "unknown"
+    }
+  }
+]
+

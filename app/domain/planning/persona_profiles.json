@@ -1,0 +1,34 @@
+{
+  "default": {
+    "max_daily_minutes": 600,
+    "max_pois": 5,
+    "walk_penalty_weight": "medium",
+    "rest_required": false,
+    "lunch_priority": "medium",
+    "night_bonus": false
+  },
+  "elderly": {
+    "max_daily_minutes": 360,
+    "max_pois": 4,
+    "walk_penalty_weight": "high",
+    "rest_required": true,
+    "lunch_priority": "high",
+    "night_bonus": false
+  },
+  "family": {
+    "max_daily_minutes": 420,
+    "max_pois": 4,
+    "walk_penalty_weight": "medium",
+    "rest_required": true,
+    "lunch_priority": "high",
+    "night_bonus": false
+  },
+  "young_friends": {
+    "max_daily_minutes": 540,
+    "max_pois": 6,
+    "walk_penalty_weight": "low",
+    "rest_required": false,
+    "lunch_priority": "medium",
+    "night_bonus": true
+  }
+}

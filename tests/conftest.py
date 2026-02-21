@@ -11,6 +11,7 @@ def no_real_apis(monkeypatch):
     monkeypatch.delenv("LLM_API_KEY", raising=False)
     monkeypatch.delenv("AMAP_API_KEY", raising=False)
     monkeypatch.delenv("API_BEARER_TOKEN", raising=False)
+    monkeypatch.setenv("ALLOW_UNAUTHENTICATED_API", "true")
     monkeypatch.delenv("DIAGNOSTICS_TOKEN", raising=False)
     monkeypatch.delenv("ENABLE_DIAGNOSTICS", raising=False)
     monkeypatch.delenv("STRICT_EXTERNAL_DATA", raising=False)

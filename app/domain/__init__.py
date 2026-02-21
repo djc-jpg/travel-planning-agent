@@ -8,7 +8,7 @@ from app.domain.constants import (
     PACE_POI_COUNT,
     TRANSPORT_COST_PER_SEGMENT,
 )
-from app.domain.enums import Pace, Severity, TimeSlot, TransportMode, TravelersType
+from app.domain.enums import Pace, PoiSemanticType, Severity, TimeSlot, TransportMode, TravelersType
 from app.domain.exceptions import DomainError, InvalidConstraints
 from app.domain.models import (
     ErrorResponse,
@@ -33,6 +33,7 @@ __all__ = [
     "UserProfile",
     "ValidationIssue",
     "Pace",
+    "PoiSemanticType",
     "Severity",
     "TimeSlot",
     "TransportMode",
@@ -44,4 +45,3 @@ __all__ = [
     "PACE_MIN",
     "TRANSPORT_COST_PER_SEGMENT",
 ]
-

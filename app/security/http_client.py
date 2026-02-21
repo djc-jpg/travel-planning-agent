@@ -28,10 +28,23 @@ class SecureHttpClient:
         max_retries: int = 1,
         tool_name: str = "http",
     ):
-        self._timeout = timeout
-        self._max_retries = max_retries
+        timeout_cap = float(self._read_env("TOOL_HTTP_TIMEOUT_CAP_SECONDS", "20"))
+        retry_cap = int(self._read_env("TOOL_HTTP_RETRY_CAP", "2"))
+        timeout_floor = float(self._read_env("TOOL_HTTP_TIMEOUT_FLOOR_SECONDS", "1"))
+
+        bounded_timeout = max(timeout_floor, min(float(timeout), timeout_cap))
+        bounded_retries = max(0, min(int(max_retries), retry_cap))
+
+        self._timeout = bounded_timeout
+        self._max_retries = bounded_retries
         self._tool_name = tool_name
         self._km = get_key_manager()
+
+    @staticmethod
+    def _read_env(name: str, default: str) -> str:
+        import os
+
+        return os.getenv(name, default)
 
     def get(
         self,

@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 
 TRUTHY = {"1", "true", "yes", "on"}
 PLACEHOLDER_MARKERS = ("<YOUR_", "YOUR_", "REPLACE_ME", "CHANGE_ME", "TODO")
+ENGINE_CHOICES = {"v1", "v2"}
 
 
 @dataclass(frozen=True)
@@ -156,6 +157,36 @@ def validate_environment(env: Mapping[str, str], runtime_checks: bool = False) -
         results.append(CheckResult("graph_timeout", "FAIL", "GRAPH_TIMEOUT_SECONDS must be > 0"))
     else:
         results.append(CheckResult("graph_timeout", "PASS", f"Graph timeout is {graph_timeout}s"))
+
+    engine_version = (env.get("ENGINE_VERSION") or "v2").strip().lower()
+    if engine_version not in ENGINE_CHOICES:
+        results.append(
+            CheckResult(
+                "engine_version",
+                "FAIL",
+                f"ENGINE_VERSION must be one of {sorted(ENGINE_CHOICES)}",
+            )
+        )
+    else:
+        results.append(CheckResult("engine_version", "PASS", f"ENGINE_VERSION={engine_version}"))
+
+    strict_required = env.get("STRICT_REQUIRED_FIELDS", "false").strip().lower()
+    if strict_required and strict_required not in {"0", "1", "false", "true", "yes", "no", "on", "off"}:
+        results.append(
+            CheckResult(
+                "strict_required_fields",
+                "FAIL",
+                "STRICT_REQUIRED_FIELDS must be boolean-like (true/false/1/0)",
+            )
+        )
+    else:
+        results.append(
+            CheckResult(
+                "strict_required_fields",
+                "PASS",
+                f"STRICT_REQUIRED_FIELDS={strict_required or 'false'}",
+            )
+        )
 
     rate_limit_max = _as_positive_int(env.get("RATE_LIMIT_MAX") or "60")
     rate_limit_window = _as_positive_int(env.get("RATE_LIMIT_WINDOW") or "60")

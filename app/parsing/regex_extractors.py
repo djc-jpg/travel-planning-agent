@@ -78,11 +78,74 @@ def extract_days(text: str) -> int | None:
 
 def extract_budget(text: str) -> float | None:
     """从文本中提取预算金额。"""
-    m = re.search(r"预算\s*(\d+)", text)
-    if m:
-        return float(m.group(1))
+    patterns = [
+        r"(?:总预算|预算(?:总共|共计|约|大概)?)[^\d]{0,6}(\d+)\s*元?",
+        r"预算[^\d]{0,6}(\d+)\s*元?",
+        r"每天[^\d]{0,4}(\d+)\s*元?",
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, text)
+        if m:
+            return float(m.group(1))
     m = re.search(r"每天\s*(\d+)\s*元", text)
     return float(m.group(1)) if m else None
+
+
+def extract_travelers_count(text: str) -> int | None:
+    """Extract traveler count from common Chinese expressions."""
+    patterns = [
+        r"(\d+)\s*位",
+        r"(\d+)\s*人",
+        r"(\d+)\s*大人",
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, text)
+        if m:
+            value = int(m.group(1))
+            if 1 <= value <= 20:
+                return value
+    return None
+
+
+def extract_holiday_hint(text: str) -> str | None:
+    if "春节" in text:
+        return "spring_festival"
+    if "国庆" in text:
+        return "national_day"
+    return None
+
+
+def extract_free_only(text: str) -> bool:
+    return any(
+        kw in text
+        for kw in (
+            "只去免费",
+            "免费景点",
+            "不要收费",
+            "不买门票",
+            "免门票",
+        )
+    )
+
+
+def extract_must_visit(text: str) -> list[str]:
+    match = re.search(r"(?:必须去|必去)([^。；\n]+)", text)
+    if not match:
+        return []
+
+    segment = match.group(1)
+    # Remove trailing intent phrases that are not POI names.
+    segment = re.split(r"(请|并|然后|希望|给我|安排)", segment)[0]
+    raw_parts = re.split(r"[、,，和及]\s*", segment)
+    cleaned: list[str] = []
+    for part in raw_parts:
+        token = part.strip("：: 。；;，,")
+        if not token:
+            continue
+        if len(token) > 16:
+            continue
+        cleaned.append(token)
+    return cleaned[:6]
 
 
 def regex_extract(text: str, constraints: dict, profile: dict) -> None:
@@ -101,6 +164,21 @@ def regex_extract(text: str, constraints: dict, profile: dict) -> None:
             constraints["budget_per_day"] = budget
         else:
             constraints["total_budget"] = budget
+
+    holiday_hint = extract_holiday_hint(text)
+    if holiday_hint:
+        constraints["holiday_hint"] = holiday_hint
+
+    travelers_count = extract_travelers_count(text)
+    if travelers_count:
+        constraints["travelers_count"] = travelers_count
+
+    if extract_free_only(text):
+        constraints["free_only"] = True
+
+    must_visit = extract_must_visit(text)
+    if must_visit:
+        constraints["must_visit"] = must_visit
 
     for kw, pace in PACE_MAP.items():
         if kw in text:
@@ -140,7 +218,18 @@ def apply_text_evidence(text: str, constraints: dict, profile: dict) -> None:
     p_from_text: dict = {}
     regex_extract(text, c_from_text, p_from_text)
 
-    for key in ("city", "days", "budget_per_day", "total_budget", "pace", "transport_mode"):
+    for key in (
+        "city",
+        "days",
+        "budget_per_day",
+        "total_budget",
+        "pace",
+        "transport_mode",
+        "holiday_hint",
+        "travelers_count",
+        "free_only",
+        "must_visit",
+    ):
         if key in c_from_text:
             constraints[key] = c_from_text[key]
 
@@ -174,6 +263,14 @@ def apply_llm_result(result: dict, constraints: dict, profile: dict) -> None:
         constraints["pace"] = result["pace"]
     if result.get("transport_mode"):
         constraints["transport_mode"] = result["transport_mode"]
+    if result.get("holiday_hint"):
+        constraints["holiday_hint"] = result["holiday_hint"]
+    if result.get("travelers_count"):
+        constraints["travelers_count"] = int(result["travelers_count"])
+    if result.get("free_only") is not None:
+        constraints["free_only"] = bool(result["free_only"])
+    if result.get("must_visit"):
+        constraints["must_visit"] = [str(item) for item in result["must_visit"] if str(item).strip()]
     if result.get("themes"):
         existing = profile.get("themes", [])
         for t in result["themes"]:

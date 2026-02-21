@@ -11,6 +11,14 @@ def _clear_amap_key_cache():
     km.reload("AMAP_API_KEY")
 
 
+def _reload_key_cache(*names: str) -> None:
+    from app.security.key_manager import get_key_manager
+
+    km = get_key_manager()
+    for name in names:
+        km.reload(name)
+
+
 def test_tool_factory_allows_mock_when_not_strict(monkeypatch):
     monkeypatch.delenv("STRICT_EXTERNAL_DATA", raising=False)
     monkeypatch.delenv("AMAP_API_KEY", raising=False)
@@ -37,3 +45,24 @@ def test_tool_factory_requires_amap_key_when_strict(monkeypatch):
     with pytest.raises(ToolError):
         tool_factory.get_weather_tool()
 
+
+def test_describe_active_tools_supports_llm_compatible_provider(monkeypatch):
+    monkeypatch.delenv("DASHSCOPE_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setenv("LLM_API_KEY", "llm-key")
+    _reload_key_cache("DASHSCOPE_API_KEY", "OPENAI_API_KEY", "LLM_API_KEY")
+
+    tools = tool_factory.describe_active_tools()
+
+    assert tools["llm"] == "llm_compatible"
+
+
+def test_describe_active_tools_llm_provider_priority(monkeypatch):
+    monkeypatch.setenv("LLM_API_KEY", "llm-key")
+    monkeypatch.setenv("OPENAI_API_KEY", "openai-key")
+    monkeypatch.setenv("DASHSCOPE_API_KEY", "dashscope-key")
+    _reload_key_cache("DASHSCOPE_API_KEY", "OPENAI_API_KEY", "LLM_API_KEY")
+
+    tools = tool_factory.describe_active_tools()
+
+    assert tools["llm"] == "dashscope"

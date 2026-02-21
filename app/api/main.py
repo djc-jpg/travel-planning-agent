@@ -1,33 +1,39 @@
-"""FastAPI app with security hardening."""
+﻿"""FastAPI app with security hardening."""
 
 from __future__ import annotations
 
-import concurrent.futures
 import logging
 import os
 import secrets
 import time
 import uuid
-from typing import Any
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.agent.nodes.merge_user_update import merge_user_update_node
-from app.api.schemas import ChatRequest, HealthResponse, PlanRequest, PlanResponse
-from app.application.graph.workflow import compile_graph
-from app.application.state_factory import make_initial_state
+from app.api.schemas import (
+    ChatRequest,
+    HealthResponse,
+    PlanExportResponse,
+    PlanRequest,
+    PlanResponse,
+    SessionHistoryResponse,
+    SessionListResponse,
+)
+from app.application.context import make_app_context
+from app.application.contracts import TripResult
+from app.application.plan_trip import GraphTimeoutError
 from app.infrastructure.rate_limiter import get_rate_limiter
-from app.infrastructure.session_store import get_session_store
+from app.services.history_service import get_plan_export, list_session_history, list_sessions
+from app.services.export_formatter import render_plan_markdown
+from app.services.plan_service import execute_plan
 
 _api_logger = logging.getLogger("trip-agent.api")
 
 load_dotenv()
-
-_GRAPH_TIMEOUT = int(os.getenv("GRAPH_TIMEOUT_SECONDS", "120"))
 
 app = FastAPI(
     title="trip-agent",
@@ -35,14 +41,6 @@ app = FastAPI(
     docs_url="/docs" if os.getenv("ENABLE_DOCS", "false").lower() == "true" else None,
     redoc_url=None,
 )
-
-
-class GraphTimeoutError(RuntimeError):
-    """Raised when graph invocation exceeds timeout."""
-
-    def __init__(self, timeout: int):
-        self.timeout = timeout
-        super().__init__(f"graph invoke timed out after {timeout}s")
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -147,9 +145,15 @@ def _check_diagnostics_access(request: Request) -> None:
 
 
 def _check_api_access(request: Request) -> None:
+    if _is_enabled("ALLOW_UNAUTHENTICATED_API", default=False):
+        return
+
     expected = os.getenv("API_BEARER_TOKEN", "").strip()
     if not expected:
-        return
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="API auth is not configured; set API_BEARER_TOKEN or ALLOW_UNAUTHENTICATED_API=true",
+        )
 
     provided = _extract_bearer_token(request.headers.get("Authorization"))
     if not provided:
@@ -169,7 +173,9 @@ app.add_middleware(
 _cors_origins = _parse_cors_origins(os.getenv("CORS_ORIGINS"))
 _cors_allow_credentials = os.getenv("CORS_ALLOW_CREDENTIALS", "false").lower() == "true"
 if "*" in _cors_origins and _cors_allow_credentials:
-    _api_logger.warning("CORS_ORIGINS contains '*' with credentials enabled; forcing allow_credentials=false")
+    _api_logger.warning(
+        "CORS_ORIGINS contains '*' with credentials enabled; forcing allow_credentials=false"
+    )
     _cors_allow_credentials = False
 
 app.add_middleware(
@@ -180,38 +186,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-store = get_session_store()
-_compiled_graph = None
+_app_ctx = make_app_context()
 
 
-def _get_graph():
-    global _compiled_graph
-    if _compiled_graph is None:
-        _compiled_graph = compile_graph()
-    return _compiled_graph
-
-
-def _invoke_with_timeout(graph, state: dict, timeout: int = _GRAPH_TIMEOUT) -> dict:
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-        future = pool.submit(graph.invoke, state)
-        try:
-            return future.result(timeout=timeout)
-        except concurrent.futures.TimeoutError:
-            _api_logger.warning("Graph invoke timed out after %ss", timeout)
-            raise GraphTimeoutError(timeout) from None
-
-
-def _extract_last_message(result: dict[str, Any]) -> str:
-    messages = result.get("messages", [])
-    return messages[-1].get("content", "") if messages else ""
-
-
-def _extract_response(result: dict[str, Any], session_id: str) -> PlanResponse:
+def _result_to_response(result: TripResult) -> PlanResponse:
     return PlanResponse(
-        status=result.get("status", "unknown"),
-        message=_extract_last_message(result),
-        itinerary=result.get("final_itinerary"),
-        session_id=session_id,
+        status=result.status.value,
+        message=result.message,
+        itinerary=result.itinerary,
+        session_id=result.session_id,
+        request_id=result.request_id,
+        trace_id=result.trace_id,
+        degrade_level=result.degrade_level,
+        confidence_score=result.confidence_score,
+        issues=list(result.issues),
+        next_questions=list(result.next_questions),
+        field_evidence={
+            name: item.model_dump(mode="json")
+            for name, item in result.field_evidence.items()
+        },
+        run_fingerprint=(
+            result.run_fingerprint.model_dump(mode="json")
+            if result.run_fingerprint is not None
+            else None
+        ),
     )
 
 
@@ -220,12 +218,20 @@ def health():
     return HealthResponse(status="ok")
 
 
+@app.get("/metrics")
+def metrics():
+    from app.observability.plan_metrics import get_plan_metrics
+
+    return get_plan_metrics().snapshot()
+
+
 @app.get("/diagnostics")
 def diagnostics(request: Request):
     _check_diagnostics_access(request)
 
     from app.adapters.tool_factory import describe_active_tools
     from app.infrastructure.cache import poi_cache, route_cache, weather_cache
+    from app.observability.plan_metrics import get_plan_metrics
     from app.security.amap_signer import is_signing_enabled
 
     return {
@@ -237,23 +243,72 @@ def diagnostics(request: Request):
             "weather": weather_cache.stats,
         },
         "sessions": {
-            "backend": getattr(store, "backend", "unknown"),
-            "active": store.active_count,
+            "backend": getattr(_app_ctx.session_store, "backend", "unknown"),
+            "active": _app_ctx.session_store.active_count,
         },
+        "runtime_flags": {
+            "engine_version": _app_ctx.engine_version,
+            "strict_required_fields": _app_ctx.strict_required_fields,
+        },
+        "plan_metrics": get_plan_metrics().snapshot(),
     }
 
 
-@app.post("/plan", response_model=PlanResponse)
-def plan(req: PlanRequest, request: Request):
+@app.get("/sessions", response_model=SessionListResponse)
+def sessions(request: Request, limit: int = 20):
     _check_api_access(request)
 
-    session_id = str(uuid.uuid4())[:8]
-    state = make_initial_state()
-    state["messages"].append({"role": "user", "content": req.message})
+    rows = list_sessions(ctx=_app_ctx, limit=limit)
+    return SessionListResponse(items=[row.model_dump(mode="json") for row in rows])
+
+
+@app.get("/sessions/{session_id}/history", response_model=SessionHistoryResponse)
+def session_history(session_id: str, request: Request, limit: int = 20):
+    _check_api_access(request)
+
+    rows = list_session_history(ctx=_app_ctx, session_id=session_id, limit=limit)
+    if not rows:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session history not found")
+    return SessionHistoryResponse(
+        session_id=session_id,
+        items=[row.model_dump(mode="json") for row in rows],
+    )
+
+
+@app.get("/plans/{request_id}/export", response_model=PlanExportResponse)
+def export_plan(request_id: str, request: Request, format: str = "json"):
+    _check_api_access(request)
+
+    record = get_plan_export(ctx=_app_ctx, request_id=request_id)
+    if record is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plan export not found")
+
+    normalized_format = format.strip().lower()
+    if normalized_format == "json":
+        return PlanExportResponse(**record.model_dump(mode="json"))
+    if normalized_format == "markdown":
+        markdown = render_plan_markdown(record)
+        return PlainTextResponse(markdown, media_type="text/markdown; charset=utf-8")
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="Unsupported export format; use json or markdown",
+    )
+
+
+@app.post("/plan", response_model=PlanResponse)
+def plan(req: PlanRequest, request: Request, debug: bool = False):
+    _check_api_access(request)
 
     try:
-        graph = _get_graph()
-        result = _invoke_with_timeout(graph, state)
+        result = execute_plan(
+            ctx=_app_ctx,
+            message=req.message,
+            constraints=req.constraints,
+            user_profile=req.user_profile,
+            metadata=req.metadata,
+            debug=debug,
+        )
     except GraphTimeoutError as exc:
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
@@ -266,34 +321,28 @@ def plan(req: PlanRequest, request: Request):
             detail="规划过程出错，请稍后重试",
         ) from None
 
-    if result.get("status") == "error":
+    if result.status.value == "error":
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=_extract_last_message(result) or "无法生成可执行行程，请调整需求后重试",
+            detail=result.message or "无法生成可执行行程，请调整需求后重试",
         )
-
-    store.save(session_id, result)
-    return _extract_response(result, session_id)
+    return _result_to_response(result)
 
 
 @app.post("/chat", response_model=PlanResponse)
-def chat(req: ChatRequest, request: Request):
+def chat(req: ChatRequest, request: Request, debug: bool = False):
     _check_api_access(request)
 
-    session_id = req.session_id
-    state = store.get(session_id)
-    if state is None:
-        state = make_initial_state()
-
-    state["messages"].append({"role": "user", "content": req.message})
-
-    if state.get("status") == "clarifying":
-        merge_result = merge_user_update_node(state)
-        state.update(merge_result)
-
     try:
-        graph = _get_graph()
-        result = _invoke_with_timeout(graph, state)
+        result = execute_plan(
+            ctx=_app_ctx,
+            message=req.message,
+            session_id=req.session_id,
+            constraints=req.constraints,
+            user_profile=req.user_profile,
+            metadata=req.metadata,
+            debug=debug,
+        )
     except GraphTimeoutError as exc:
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
@@ -306,14 +355,12 @@ def chat(req: ChatRequest, request: Request):
             detail="对话处理出错，请稍后重试",
         ) from None
 
-    if result.get("status") == "error":
+    if result.status.value == "error":
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=_extract_last_message(result) or "无法继续该会话，请调整需求后重试",
+            detail=result.message or "无法继续该会话，请调整需求后重试",
         )
-
-    store.save(session_id, result)
-    return _extract_response(result, session_id)
+    return _result_to_response(result)
 
 
 def _safe_log_exception(context: str, exc: Exception) -> None:

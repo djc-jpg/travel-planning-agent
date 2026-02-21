@@ -1,0 +1,233 @@
+{
+  "generated_at": "2026-02-22T00:50:21",
+  "config_path": "D:\\xiaohuanly\\eval\\release_gate.json",
+  "cases_path": "D:\\xiaohuanly\\eval\\cases.json",
+  "metrics": {
+    "schema_valid_rate": 1.0,
+    "clarifying_correctness": 1.0,
+    "constraint_satisfaction_rate": 1.0,
+    "travel_feasibility_rate": 1.0,
+    "plan_success_rate": 1.0,
+    "unknown_fact_rate": 0.175,
+    "l0_real_routing_ratio": 0.4,
+    "fallback_rate": 0.0,
+    "verified_fact_ratio": 0.825,
+    "routing_fixture_rate": 0.6,
+    "infrastructure_poi_rate": 0.0,
+    "business_poi_leak_rate": 0.0,
+    "food_night_coverage_rate": 1.0,
+    "avoid_constraint_pass_rate": 1.0,
+    "confidence_samples": 6,
+    "confidence_mean": 0.699,
+    "confidence_p50": 0.7,
+    "confidence_p90": 1.0,
+    "p95_latency_ms": 174.71,
+    "concurrency_isolation": 1.0,
+    "edit_roundtrip_pass_rate": 1.0
+  },
+  "thresholds": {
+    "schema_valid_rate": 1.0,
+    "clarifying_correctness": ">=0.95",
+    "constraint_satisfaction_rate": ">=0.90",
+    "travel_feasibility_rate": ">=0.90",
+    "plan_success_rate": ">=0.99",
+    "unknown_fact_rate": "<=0.20",
+    "l0_real_routing_ratio": ">=0.30",
+    "fallback_rate": "<=0.10",
+    "verified_fact_ratio": ">=0.60",
+    "routing_fixture_rate": "<=0.70",
+    "infrastructure_poi_rate": "==0.0",
+    "business_poi_leak_rate": "==0.0",
+    "food_night_coverage_rate": ">=0.90",
+    "avoid_constraint_pass_rate": ">=1.00",
+    "concurrency_isolation": "==1.00",
+    "p95_latency_ms": "<6000"
+  },
+  "hard_thresholds": {
+    "l0_real_routing_ratio": ">=0.30",
+    "fallback_rate": "<=0.10",
+    "verified_fact_ratio": ">=0.60",
+    "routing_fixture_rate": "<=0.70",
+    "infrastructure_poi_rate": "==0.0",
+    "business_poi_leak_rate": "==0.0",
+    "food_night_coverage_rate": ">=0.90",
+    "avoid_constraint_pass_rate": ">=1.00",
+    "edit_roundtrip_pass_rate": ">=1.00"
+  },
+  "concurrency": {
+    "requests": 50,
+    "score": 1.0,
+    "success_rate": 1.0,
+    "details": [
+      "ok"
+    ]
+  },
+  "edit_roundtrip": {
+    "passed": true,
+    "checks": {
+      "first_done": true,
+      "second_done": true,
+      "request_ids_present": true,
+      "repo_available": true,
+      "history_contains_both": true,
+      "export_exists": true,
+      "export_request_match": true,
+      "export_session_match": true,
+      "export_constraints_applied": true,
+      "export_artifacts_complete": true
+    },
+    "details": [
+      "ok"
+    ]
+  },
+  "degrade_coverage": {
+    "L0": true,
+    "L1": true,
+    "L2": true,
+    "L3": true
+  },
+  "degrade_eval_rows": [
+    {
+      "id": "l0_real_router",
+      "expected_degrade_level": "L0",
+      "actual_degrade_level": "L0",
+      "passed": true
+    },
+    {
+      "id": "l1_fixture_router",
+      "expected_degrade_level": "L1",
+      "actual_degrade_level": "L1",
+      "passed": true
+    },
+    {
+      "id": "l2_unknown_hotplug",
+      "expected_degrade_level": "L2",
+      "actual_degrade_level": "L2",
+      "passed": true
+    },
+    {
+      "id": "l3_clarifying",
+      "expected_degrade_level": "L3",
+      "actual_degrade_level": "L3",
+      "passed": true
+    }
+  ],
+  "failures": [],
+  "passed": true,
+  "case_rows": [
+    {
+      "id": "c01_beijing_basic",
+      "status": "done",
+      "expected_status": "done",
+      "clarifying_pass": true,
+      "schema_valid": true,
+      "constraint_pass": true,
+      "travel_pass": true,
+      "unknown_ratio_case": 0.0,
+      "verified_fact_ratio_case": 1.0,
+      "routing_source": "real",
+      "fallback_count": 0,
+      "routing_mode_case": "real",
+      "degrade_level": "L0",
+      "confidence_score_case": 1.0,
+      "latency_ms": 156.84,
+      "request_id": "9658b422-18c",
+      "trace_id": "5de33a38-41b"
+    },
+    {
+      "id": "c02_shanghai_food",
+      "status": "done",
+      "expected_status": "done",
+      "clarifying_pass": true,
+      "schema_valid": true,
+      "constraint_pass": true,
+      "travel_pass": true,
+      "unknown_ratio_case": 0.25,
+      "verified_fact_ratio_case": 0.75,
+      "routing_source": "real",
+      "fallback_count": 0,
+      "routing_mode_case": "real",
+      "degrade_level": "L2",
+      "confidence_score_case": 0.863,
+      "latency_ms": 140.31,
+      "request_id": "95617d7a-7ac",
+      "trace_id": "7f86fbf9-0f9"
+    },
+    {
+      "id": "c03_chengdu_relaxed",
+      "status": "done",
+      "expected_status": "done",
+      "clarifying_pass": true,
+      "schema_valid": true,
+      "constraint_pass": true,
+      "travel_pass": true,
+      "unknown_ratio_case": 0.25,
+      "verified_fact_ratio_case": 0.75,
+      "routing_source": "fixture",
+      "fallback_count": 0,
+      "routing_mode_case": "fixture",
+      "degrade_level": "L2",
+      "confidence_score_case": 0.7,
+      "latency_ms": 174.71,
+      "request_id": "6aac114e-6b8",
+      "trace_id": "d591074b-593"
+    },
+    {
+      "id": "c04_hangzhou_public",
+      "status": "done",
+      "expected_status": "done",
+      "clarifying_pass": true,
+      "schema_valid": true,
+      "constraint_pass": true,
+      "travel_pass": true,
+      "unknown_ratio_case": 0.25,
+      "verified_fact_ratio_case": 0.75,
+      "routing_source": "fixture",
+      "fallback_count": 0,
+      "routing_mode_case": "fixture",
+      "degrade_level": "L2",
+      "confidence_score_case": 0.7,
+      "latency_ms": 130.56,
+      "request_id": "cd04265d-0bc",
+      "trace_id": "b27c2681-729"
+    },
+    {
+      "id": "c05_shanghai_quality_guard",
+      "status": "done",
+      "expected_status": "done",
+      "clarifying_pass": true,
+      "schema_valid": true,
+      "constraint_pass": true,
+      "travel_pass": true,
+      "unknown_ratio_case": 0.25,
+      "verified_fact_ratio_case": 0.75,
+      "routing_source": "fixture",
+      "fallback_count": 0,
+      "routing_mode_case": "fixture",
+      "degrade_level": "L2",
+      "confidence_score_case": 0.7,
+      "latency_ms": 136.64,
+      "request_id": "3e0e9bed-2fc",
+      "trace_id": "39ea3877-a4a"
+    },
+    {
+      "id": "c06_missing_requirements",
+      "status": "clarifying",
+      "expected_status": "clarifying",
+      "clarifying_pass": true,
+      "schema_valid": false,
+      "constraint_pass": null,
+      "travel_pass": null,
+      "unknown_ratio_case": 0.0,
+      "verified_fact_ratio_case": 0.0,
+      "routing_source": "unknown",
+      "fallback_count": 0,
+      "routing_mode_case": "fixture",
+      "degrade_level": "L3",
+      "confidence_score_case": 0.231,
+      "latency_ms": 95.24,
+      "request_id": "c8cf6091-053",
+      "trace_id": "e7335daa-e72"
+    }
+  ]
+}

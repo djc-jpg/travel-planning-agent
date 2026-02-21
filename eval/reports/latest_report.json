@@ -1,0 +1,320 @@
+{
+  "generated_at": "2026-02-20T12:24:43",
+  "cases_file": "eval\\cases.json",
+  "summary": {
+    "total_cases": 5,
+    "passed_cases": 5,
+    "average_score": 1.0,
+    "pass_rate": 1.0,
+    "metric_pass_rates": {
+      "budget_realism": 1.0,
+      "clarifying_correctness": 1.0,
+      "constraint_satisfaction": 1.0,
+      "contract_validity": 1.0,
+      "duplication_backtracking": 1.0,
+      "expected_properties_match": 1.0,
+      "fact_verifiability": 1.0,
+      "schema_requirement": 1.0,
+      "schema_valid": 1.0,
+      "status_match": 1.0,
+      "structured_output_quality": 1.0,
+      "travel_feasibility": 1.0
+    },
+    "concurrency_isolation": {
+      "score": 1.0,
+      "details": [
+        "ok"
+      ],
+      "requests": 20
+    },
+    "top_failure_modes": [],
+    "priority_suggestions": []
+  },
+  "cases": [
+    {
+      "id": "c01_beijing_basic",
+      "user_request": "我想去北京玩3天，历史文化为主，公共交通出行。",
+      "score": 1.0,
+      "status": "PASS",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "clarifying_correctness",
+          "passed": true,
+          "evidence": "actual=done, expected_clarifying=False"
+        },
+        {
+          "name": "contract_validity",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": true,
+          "evidence": "duplicates=False, cluster_switches=2, limit=3"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": true,
+          "evidence": "ok"
+        }
+      ]
+    },
+    {
+      "id": "c02_shanghai_food",
+      "user_request": "上海2天，美食和夜景，节奏适中。",
+      "score": 1.0,
+      "status": "PASS",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "clarifying_correctness",
+          "passed": true,
+          "evidence": "actual=done, expected_clarifying=False"
+        },
+        {
+          "name": "contract_validity",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": true,
+          "evidence": "duplicates=False, cluster_switches=0, limit=2"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": true,
+          "evidence": "ok"
+        }
+      ]
+    },
+    {
+      "id": "c03_chengdu_relaxed",
+      "user_request": "成都3天，轻松节奏，预算每天400。",
+      "score": 1.0,
+      "status": "PASS",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "clarifying_correctness",
+          "passed": true,
+          "evidence": "actual=done, expected_clarifying=False"
+        },
+        {
+          "name": "contract_validity",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": true,
+          "evidence": "duplicates=False, cluster_switches=0, limit=3"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": true,
+          "evidence": "ok"
+        }
+      ]
+    },
+    {
+      "id": "c04_hangzhou_public",
+      "user_request": "杭州2天，园林和自然，尽量公共交通。",
+      "score": 1.0,
+      "status": "PASS",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=done, expected=done"
+        },
+        {
+          "name": "clarifying_correctness",
+          "passed": true,
+          "evidence": "actual=done, expected_clarifying=False"
+        },
+        {
+          "name": "contract_validity",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "schema_valid",
+          "passed": true,
+          "evidence": "itinerary parsed by app.domain.models.Itinerary"
+        },
+        {
+          "name": "constraint_satisfaction",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "fact_verifiability",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "travel_feasibility",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "budget_realism",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "duplication_backtracking",
+          "passed": true,
+          "evidence": "duplicates=False, cluster_switches=0, limit=2"
+        },
+        {
+          "name": "structured_output_quality",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "expected_properties_match",
+          "passed": true,
+          "evidence": "ok"
+        }
+      ]
+    },
+    {
+      "id": "c05_missing_requirements",
+      "user_request": "帮我规划一个旅行",
+      "score": 1.0,
+      "status": "PASS",
+      "schema_errors": [],
+      "checks": [
+        {
+          "name": "status_match",
+          "passed": true,
+          "evidence": "actual=clarifying, expected=clarifying"
+        },
+        {
+          "name": "clarifying_correctness",
+          "passed": true,
+          "evidence": "actual=clarifying, expected_clarifying=True"
+        },
+        {
+          "name": "contract_validity",
+          "passed": true,
+          "evidence": "ok"
+        },
+        {
+          "name": "schema_requirement",
+          "passed": true,
+          "evidence": "itinerary omitted for non-done status"
+        }
+      ]
+    }
+  ]
+}

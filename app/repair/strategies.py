@@ -2,21 +2,18 @@
 
 from __future__ import annotations
 
-from app.domain.constants import PACE_MAX, TRANSPORT_COST_PER_SEGMENT
-from app.domain.models import Itinerary, ItineraryDay, POI, ScheduleItem, TimeSlot, TripConstraints
+from app.domain.constants import PACE_MAX
+from app.domain.models import Itinerary, ItineraryDay, POI, ScheduleItem, TimeSlot, TripConstraints, UserProfile
+from app.planner.budget import apply_realistic_budget
 
 
 def _recalc_cost(itinerary: Itinerary, constraints: TripConstraints) -> None:
-    mode = constraints.transport_mode.value
-    total = 0.0
     for day in itinerary.days:
         main = [s for s in day.schedule if not s.is_backup]
-        poi_cost = sum(s.poi.cost for s in main)
-        segments = max(0, len(main) - 1)
-        transport_cost = segments * TRANSPORT_COST_PER_SEGMENT.get(mode, 5.0)
-        day.estimated_cost = round(poi_cost + transport_cost, 2)
-        total += day.estimated_cost
-    itinerary.total_cost = round(total, 2)
+        if main:
+            main[0].travel_minutes = 0.0
+        day.total_travel_minutes = round(sum(s.travel_minutes for s in main), 1)
+    apply_realistic_budget(itinerary, constraints, UserProfile())
 
 
 def repair_over_time(itinerary: Itinerary, day_number: int | None, constraints: TripConstraints) -> Itinerary:

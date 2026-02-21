@@ -1,0 +1,63 @@
+[
+  {
+    "id": "l0_real_router",
+    "env": {
+      "ROUTING_PROVIDER": "real"
+    },
+    "request": {
+      "message": "北京2天历史文化游",
+      "constraints": {
+        "city": "北京",
+        "days": 2,
+        "date_start": "2026-04-01",
+        "date_end": "2026-04-02"
+      }
+    },
+    "expect_degrade_level": "L0"
+  },
+  {
+    "id": "l1_fixture_router",
+    "env": {
+      "ROUTING_PROVIDER": "fixture"
+    },
+    "request": {
+      "message": "北京2天历史文化游",
+      "constraints": {
+        "city": "北京",
+        "days": 2,
+        "date_start": "2026-04-01",
+        "date_end": "2026-04-02"
+      }
+    },
+    "expect_degrade_level": "L1"
+  },
+  {
+    "id": "l2_unknown_hotplug",
+    "env": {
+      "ROUTING_PROVIDER": "fixture"
+    },
+    "request": {
+      "message": "testcity 两天行程",
+      "constraints": {
+        "city": "testcity",
+        "days": 2,
+        "date_start": "2026-05-01",
+        "date_end": "2026-05-02"
+      }
+    },
+    "expect_degrade_level": "L2"
+  },
+  {
+    "id": "l3_clarifying",
+    "env": {
+      "ENGINE_VERSION": "v2",
+      "STRICT_REQUIRED_FIELDS": "true"
+    },
+    "request": {
+      "message": "帮我规划一个旅行",
+      "constraints": {}
+    },
+    "expect_degrade_level": "L3"
+  }
+]
+

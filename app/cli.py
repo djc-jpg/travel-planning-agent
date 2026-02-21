@@ -1,49 +1,35 @@
-"""trip-agent CLI 入口 — 支持多轮对话"""
+﻿"""trip-agent CLI entrypoint with single application service."""
 
 from __future__ import annotations
 
 import json
 import sys
+import uuid
 
 from dotenv import load_dotenv
 
-from app.application.state_factory import make_initial_state
+from app.application.context import make_app_context
+from app.application.contracts import TripRequest, TripResult
+from app.application.plan_trip import GraphTimeoutError, plan_trip
 
-load_dotenv()  # 自动加载 .env 文件
+load_dotenv()
 
 
-def _run_graph(state: dict) -> dict:
-    import concurrent.futures
-    import os
-    from app.application.graph.workflow import compile_graph
-    timeout = int(os.getenv("GRAPH_TIMEOUT_SECONDS", "120"))
-    app = compile_graph()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-        future = pool.submit(app.invoke, state)
-        try:
-            return future.result(timeout=timeout)
-        except concurrent.futures.TimeoutError:
-            return {
-                **state,
-                "status": "error",
-                "messages": state.get("messages", []) + [
-                    {"role": "assistant", "content": f"规划超时（{timeout}秒），请简化需求后重试"}
-                ],
-            }
+def run_request(message: str, session_id: str | None, ctx) -> TripResult:
+    return plan_trip(TripRequest(message=message, session_id=session_id), ctx)
 
 
 def _format_itinerary(final: dict) -> str:
-    """将 Itinerary JSON 格式化为可读的文本行程单"""
     lines: list[str] = []
     city = final.get("city", "")
     days = final.get("days", [])
     summary = final.get("summary", "")
 
-    lines.append(f"🗺️  {city}{len(days)}日行程")
+    lines.append(f"🗺️ {city}{len(days)}日行程")
     lines.append("=" * 50)
 
     if summary:
-        lines.append(f"\n📋 {summary}\n")
+        lines.append(f"\n📝 {summary}\n")
 
     for day in days:
         day_num = day.get("day_number", "?")
@@ -70,20 +56,18 @@ def _format_itinerary(final: dict) -> str:
             lines.append(f"  ⏰ {time_str}  📍 {name}  ({cost_str})")
 
             if travel_min > 0:
-                lines.append(f"     🚌 路程约{travel_min:.0f}分钟")
+                lines.append(f"     🚶 路程约{travel_min:.0f}分钟")
 
             notes = item.get("notes", "")
             if notes:
-                # 限制长度，保留前150字符
                 display = notes[:150] + ("..." if len(notes) > 150 else "")
                 lines.append(f"     💬 {display}")
 
-        # 备选
         backups = [s for s in day.get("schedule", []) if s.get("is_backup")]
         backups += day.get("backups", [])
         if backups:
             backup_names = [b.get("poi", {}).get("name", "?") for b in backups]
-            lines.append(f"  🔄 备选：{'、'.join(backup_names)}")
+            lines.append(f"  🔁 备选：{'、'.join(backup_names)}")
 
     total_cost = final.get("total_cost", 0)
     assumptions = final.get("assumptions", [])
@@ -96,82 +80,65 @@ def _format_itinerary(final: dict) -> str:
     return "\n".join(lines)
 
 
-def _display_result(result: dict) -> str:
-    """返回状态标记：done / error / clarifying"""
-    status = result.get("status", "unknown")
+def _display_result(result: TripResult) -> str:
+    status = result.status.value
     if status == "clarifying":
-        last_msg = result["messages"][-1] if result.get("messages") else {}
-        print("\n🤖 " + last_msg.get("content", ""))
+        print("\n🤔 " + result.message)
         return "clarifying"
-    elif status == "done":
-        final = result.get("final_itinerary")
+    if status == "done":
+        final = result.itinerary
         if final:
             print("\n" + _format_itinerary(final))
-            # 同时保存原始 JSON
             print("\n--- 原始 JSON 已保存到 itinerary_output.json ---")
             with open("itinerary_output.json", "w", encoding="utf-8") as f:
                 json.dump(final, f, ensure_ascii=False, indent=2)
         return "done"
-    elif status == "error":
-        last_msg = result["messages"][-1] if result.get("messages") else {}
-        print("\n❌ " + last_msg.get("content", "未知错误"))
-        return "error"
-    else:
-        print(f"\n[状态: {status}]")
-        return status
+    print("\n❌ " + (result.message or "未知错误"))
+    return "error"
 
 
 def main():
-    """支持多轮交互的 CLI。"""
     print("trip-agent scaffold ok")
     print("=" * 50)
     print("输入旅行需求开始规划，输入 quit 退出\n")
 
-    # 单参数模式（单轮）
+    ctx = make_app_context()
+
     if len(sys.argv) > 1:
         user_input = " ".join(sys.argv[1:])
-        state = make_initial_state()
-        state["messages"].append({"role": "user", "content": user_input})
-        result = _run_graph(state)
+        try:
+            result = run_request(user_input, None, ctx)
+        except GraphTimeoutError as exc:
+            print(f"\n❌ 规划超时（{exc.timeout}秒），请简化需求后重试")
+            return
         _display_result(result)
         return
 
-    # 交互模式（多轮）
-    from app.infrastructure.session_store import get_session_store
-    store = get_session_store()
     session_id = "cli_session"
-    state = make_initial_state()
 
     while True:
         try:
-            user_input = input("\n你: ").strip()
+            user_input = input("\n你> ").strip()
         except (EOFError, KeyboardInterrupt):
-            print("\n再见！")
+            print("\n再见")
             break
 
         if not user_input:
             continue
         if user_input.lower() in ("quit", "exit", "q"):
-            print("再见！")
+            print("再见")
             break
 
-        state["messages"].append({"role": "user", "content": user_input})
-
-        # 如果之前是 clarifying，走 merge + graph
-        if state.get("status") == "clarifying":
-            from app.agent.nodes.merge_user_update import merge_user_update_node
-            merge_result = merge_user_update_node(state)
-            state.update(merge_result)
-
-        result = _run_graph(state)
-        state.update(result)
-        store.save(session_id, state)
+        try:
+            result = run_request(user_input, session_id, ctx)
+        except GraphTimeoutError as exc:
+            print(f"\n❌ 对话处理超时（{exc.timeout}秒），请稍后重试")
+            continue
 
         outcome = _display_result(result)
         if outcome == "done":
-            # 可以继续新一轮
             print("\n--- 行程已生成。输入新需求开始新规划，或 quit 退出 ---")
-            state = make_initial_state()
+            session_id = f"cli_{str(uuid.uuid4())[:8]}"
 
 
 if __name__ == "__main__":

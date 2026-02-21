@@ -1,0 +1,113 @@
+[
+  {
+    "id": "c01_beijing_basic",
+    "user_request": "我想去北京玩3天，历史文化为主，公共交通出行。",
+    "constraints": {
+      "city": "北京",
+      "days": 3
+    },
+    "context": {
+      "season": "normal",
+      "weather": "mock"
+    },
+    "expected_properties": {
+      "status": "done",
+      "days": 3,
+      "has_budget_breakdown": true
+    },
+    "human_notes": "基础可执行性校验。"
+  },
+  {
+    "id": "c02_shanghai_food",
+    "user_request": "上海2天，美食和夜景，节奏适中。",
+    "constraints": {
+      "city": "上海",
+      "days": 2
+    },
+    "context": {
+      "season": "normal",
+      "weather": "mock"
+    },
+    "expected_properties": {
+      "status": "done",
+      "days": 2,
+      "has_budget_breakdown": true
+    },
+    "human_notes": "跨城市通用能力校验。"
+  },
+  {
+    "id": "c03_chengdu_relaxed",
+    "user_request": "成都3天，轻松节奏，预算每天400。",
+    "constraints": {
+      "city": "成都",
+      "days": 3,
+      "budget_per_day": 400,
+      "pace": "relaxed"
+    },
+    "context": {
+      "season": "normal",
+      "weather": "mock"
+    },
+    "expected_properties": {
+      "status": "done",
+      "days": 3,
+      "has_budget_breakdown": true
+    },
+    "human_notes": "预算与节奏联合约束。"
+  },
+  {
+    "id": "c04_hangzhou_public",
+    "user_request": "杭州2天，园林和自然，尽量公共交通。",
+    "constraints": {
+      "city": "杭州",
+      "days": 2,
+      "transport_mode": "public_transit"
+    },
+    "context": {
+      "season": "normal",
+      "weather": "mock"
+    },
+    "expected_properties": {
+      "status": "done",
+      "days": 2,
+      "has_backups": true
+    },
+    "human_notes": "交通与备选路线校验。"
+  },
+  {
+    "id": "c05_shanghai_quality_guard",
+    "user_request": "上海2天，情侣，打车出行，偏好自然风光和美食夜市，避免营业厅和售票处。",
+    "constraints": {
+      "city": "上海",
+      "days": 2,
+      "transport_mode": "taxi",
+      "avoid": [
+        "营业厅",
+        "售票处",
+        "造型"
+      ]
+    },
+    "context": {
+      "season": "normal",
+      "weather": "mock"
+    },
+    "expected_properties": {
+      "status": "done",
+      "days": 2,
+      "has_budget_breakdown": true
+    },
+    "human_notes": "防止营业厅/售票处/造型类非体验点混入主行程。"
+  },
+  {
+    "id": "c06_missing_requirements",
+    "user_request": "帮我规划一个旅行",
+    "constraints": {},
+    "context": {
+      "season": "unknown"
+    },
+    "expected_properties": {
+      "status": "clarifying"
+    },
+    "human_notes": "缺参进入澄清状态。"
+  }
+]

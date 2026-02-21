@@ -38,6 +38,16 @@ def test_invalid_numeric_limits_are_fail():
     assert result_map["rate_limit"].status == "FAIL"
 
 
+def test_invalid_engine_version_is_fail():
+    result_map = _as_map(validate_environment({"ENGINE_VERSION": "v3"}))
+    assert result_map["engine_version"].status == "FAIL"
+
+
+def test_invalid_strict_required_fields_is_fail():
+    result_map = _as_map(validate_environment({"STRICT_REQUIRED_FIELDS": "maybe"}))
+    assert result_map["strict_required_fields"].status == "FAIL"
+
+
 def test_configured_env_is_pass_for_critical_checks():
     env = {
         "API_BEARER_TOKEN": "api-secret",
@@ -50,6 +60,8 @@ def test_configured_env_is_pass_for_critical_checks():
         "GRAPH_TIMEOUT_SECONDS": "120",
         "RATE_LIMIT_MAX": "60",
         "RATE_LIMIT_WINDOW": "60",
+        "ENGINE_VERSION": "v2",
+        "STRICT_REQUIRED_FIELDS": "true",
     }
     result_map = _as_map(validate_environment(env))
     assert result_map["api_auth"].status == "PASS"
@@ -58,6 +70,8 @@ def test_configured_env_is_pass_for_critical_checks():
     assert result_map["cors_policy"].status == "PASS"
     assert result_map["graph_timeout"].status == "PASS"
     assert result_map["rate_limit"].status == "PASS"
+    assert result_map["engine_version"].status == "PASS"
+    assert result_map["strict_required_fields"].status == "PASS"
 
 
 def test_redis_connectivity_runtime_check_can_fail(monkeypatch):

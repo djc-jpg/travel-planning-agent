@@ -7,6 +7,10 @@
 - 🧠 **LLM 智能模式**：接入通义千问（DashScope）/ OpenAI，自动生成旅行文案、智能解析用户意图
 - 🔄 **模板回退**：无 API Key 时全离线运行，用规则模板生成行程
 - 🗺️ **高德地图集成**：真实 POI 搜索 + 路线规划（需配置 `AMAP_API_KEY`）
+- 📚 **可校验景点事实层（北京）**：内置 `app/data/poi_beijing.json`，包含门票、预约、开放时间、闭馆规则
+- 🧭 **可插拔 Routing Provider**：`real`（地图API）/`fixture`（默认，可复现）双模式
+- 💰 **预算真实性模型**：门票 + 市内交通 + 餐饮最低值拆分，输出 `budget_breakdown`
+- 🧱 **可执行时间轴**：交通时长 + 安检/排队缓冲 + 用餐窗口，避免不可能衔接
 - 🏙️ **多城市支持**：内置 10 城 120+ 景点数据（北京/上海/杭州/成都/西安/广州/南京/重庆/长沙/厦门）
 - 🤖 **LLM 兜底**：本地无数据的城市（如丽江、三亚）由 LLM 实时生成真实景点
 - 💬 **多轮对话**：自然追问补充信息，支持 CLI 和 API 两种交互方式
@@ -73,6 +77,9 @@ cp .env.example .env
 | `AMAP_API_KEY` | 高德地图 POI + 路线 | 否（无则用本地数据） |
 | `OPENAI_API_KEY` | OpenAI LLM 服务（替代方案） | 否 |
 | `LLM_MODEL` | 指定模型名（默认 qwen3-coder-plus） | 否 |
+| `ROUTING_PROVIDER` | `fixture`/`real`/`auto`（默认 `auto`） | 否 |
+| `FOOD_MIN_PER_PERSON_PER_DAY` | 餐饮最低预算（默认 `60`） | 否 |
+| `DEFAULT_SPRING_FESTIVAL_DATE` | 春节场景默认起始日（默认 `2026-02-17`） | 否 |
 
 **优先级**：`DASHSCOPE_API_KEY` > `OPENAI_API_KEY` > `LLM_API_KEY`
 
@@ -125,7 +132,40 @@ docker run -p 8000:8000 --env-file .env trip-agent
 
 ```bash
 python -m app.eval.run_eval
+python -m eval.beijing_4d_cny
+python -m eval.run --cases eval/cases.json --out eval/reports --tag baseline
+python -m eval.run --cases eval/cases.json --out eval/reports --tag improved
+python -m eval.compare --base eval/reports/baseline_report.json --new eval/reports/improved_report.json --out eval/reports/compare.md
 ```
+
+`python -m eval.beijing_4d_cny` 会输出北京4日春节专项评测，并写入：
+`app/eval/reports/eval_report.md`
+
+`python -m eval.run` 会输出通用客户场景评测，写入：
+- `eval/reports/<tag>_report.json`
+- `eval/reports/<tag>_report.md`
+- `eval/reports/latest_report.json`
+- `eval/reports/latest_report.md`
+
+评测case定义在 `eval/cases.json`，每条case包含：
+- `id`
+- `user_request`
+- `constraints`
+- `context`
+- `expected_properties`
+- `human_notes`（可选）
+
+人工抽检标准见：`docs/eval_rubric.md`
+
+`eval.run` 评分解释：
+- `PASS`：case score `>= 0.85`
+- `WARN`：`0.60 <= score < 0.85`
+- `FAIL`：`< 0.60`
+
+新增用例步骤：
+1. 在 `eval/cases.json` 新增一条对象，至少包含 `id/user_request/constraints/context/expected_properties`
+2. 运行 `python -m eval.run --cases eval/cases.json --out eval/reports --tag <tag>`
+3. 查看 `eval/reports/<tag>_report.md` 的失败指标与证据
 
 ### 8. 测试
 
@@ -161,6 +201,14 @@ pytest tests/ -v
 
 ## 核心设计
 
+### 北京4日春节专项能力
+
+- 景点事实从 `app/data/poi_beijing.json` 读取，不再凭空生成票价/预约规则
+- 覆盖核心景点事实：故宫、天安门广场/城楼、天坛、景山、北海、中山公园、正阳门城楼、老舍故居、明城墙遗址公园、龙潭公园
+- 春节场景自动注入高峰缓冲（安检/排队）与错峰建议
+- 日内时间轴包含交通、缓冲、午餐窗口（`meal_windows`）
+- 预算输出包含 `budget_breakdown` 与最低可行预算提示
+
 ### 双模式运行
 
 | 模式 | 条件 | 能力 |
@@ -175,7 +223,12 @@ pytest tests/ -v
 | `OVER_TIME` | 每天行程超时 | high |
 | `TOO_MUCH_TRAVEL` | 路上时间过多 | high |
 | `OVER_BUDGET` | 总费用超预算 | high |
+| `BUDGET_UNREALISTIC` | 预算明显不现实 | medium |
 | `PACE_MISMATCH` | 景点数量不匹配节奏 | medium |
+| `TRAVEL_TIME_INVALID` | 点间交通时间异常 | high |
+| `MISSING_FACTS` | 景点事实字段缺失 | high |
+| `ROUTE_BACKTRACKING` | 日内折返/片区切换偏多 | medium |
+| `DUPLICATE_POI_DAY` | 同日重复安排景点 | high |
 | `MISSING_BACKUP` | 缺少备选方案 | low |
 
 ### 修复策略阶梯
@@ -251,3 +304,63 @@ cp .env.prerelease.example .env.prerelease
 
 `prerelease-local.ps1` defaults to in-memory backend fallback for single-machine checks.
 Use `-StrictRedis` when you want Redis connectivity to be mandatory.
+
+## Guarded CI + Rollout Drill
+
+Architecture/runtime guard commands:
+
+```bash
+python tools/check_import_boundaries.py
+python tools/check_single_entrypoint.py
+python -m app.eval.run_eval
+PYTHONPATH=. python eval/run.py --cases eval/cases.json --out eval/reports --tag baseline
+```
+
+Pre-release canary + rollback drill (Docker Compose):
+
+```powershell
+.\scripts\prerelease-rollout.ps1
+```
+
+Emergency rollback to stable flags (`ENGINE_VERSION=v1`, `STRICT_REQUIRED_FIELDS=false`):
+
+```powershell
+.\scripts\prerelease-rollback.ps1
+```
+
+## Product Quick Start (Stage 1)
+
+This repo now provides a default `docker-compose.yml` for product-style local startup.
+
+1. Copy local env template:
+
+```bash
+cp .env.example .env
+```
+
+2. Start backend + frontend:
+
+```bash
+docker compose up --build
+```
+
+3. Open services:
+
+- Frontend: `http://localhost:3000`
+- Backend health: `http://localhost:8000/health`
+
+### Run modes
+
+- No external keys configured: system starts in degraded mode and still generates itineraries.
+- With real keys configured (`AMAP_API_KEY` + optional LLM key): system can run realtime providers.
+- With `STRICT_EXTERNAL_DATA=true`: missing/unavailable required external data must fail fast (no silent fallback).
+
+### Validation commands
+
+```bash
+python -m ruff check --select E9,F app tests tools eval
+pytest -q -p no:cacheprovider
+python -m app.eval.run_eval
+python -m eval.release_gate_runner
+python -m tools.release_summary
+```

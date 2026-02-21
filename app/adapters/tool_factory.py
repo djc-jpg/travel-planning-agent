@@ -15,6 +15,7 @@ from app.security.redact import redact_sensitive
 from app.shared.exceptions import ToolError
 
 _logger = logging.getLogger("trip-agent.tools")
+_DEFAULT_ALLOWLIST = {"poi", "route", "budget", "weather", "calendar"}
 
 
 def _has_amap_key() -> bool:
@@ -26,12 +27,26 @@ def _strict_external_enabled() -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _tool_allowlist() -> set[str]:
+    raw = os.getenv("TOOL_ALLOWLIST", "")
+    if not raw.strip():
+        return set(_DEFAULT_ALLOWLIST)
+    values = {item.strip().lower() for item in raw.split(",") if item.strip()}
+    return values or set(_DEFAULT_ALLOWLIST)
+
+
+def _ensure_tool_allowed(tool_name: str) -> None:
+    if tool_name not in _tool_allowlist():
+        raise ToolError(tool_name, f"Tool blocked by TOOL_ALLOWLIST: {tool_name}")
+
+
 def _raise_if_strict_without_key(tool_name: str) -> None:
     if _strict_external_enabled() and not _has_amap_key():
         raise ToolError(tool_name, "STRICT_EXTERNAL_DATA=true requires AMAP_API_KEY")
 
 
 def get_poi_tool():
+    _ensure_tool_allowed("poi")
     _raise_if_strict_without_key("poi")
     if _has_amap_key():
         try:
@@ -49,6 +64,7 @@ def get_poi_tool():
 
 
 def get_route_tool():
+    _ensure_tool_allowed("route")
     _raise_if_strict_without_key("route")
     if _has_amap_key():
         try:
@@ -66,10 +82,12 @@ def get_route_tool():
 
 
 def get_budget_tool():
+    _ensure_tool_allowed("budget")
     return mock_budget
 
 
 def get_weather_tool():
+    _ensure_tool_allowed("weather")
     _raise_if_strict_without_key("weather")
     if _has_amap_key():
         try:
@@ -87,20 +105,29 @@ def get_weather_tool():
 
 
 def get_calendar_tool():
+    _ensure_tool_allowed("calendar")
     return mock_calendar
 
 
-def describe_active_tools() -> dict[str, str]:
+def _resolve_llm_provider_name() -> str:
     km = get_key_manager()
+    if km.has_key("DASHSCOPE_API_KEY"):
+        return "dashscope"
+    if km.has_key("OPENAI_API_KEY"):
+        return "openai"
+    if km.has_key("LLM_API_KEY"):
+        return "llm_compatible"
+    return "template"
+
+
+def describe_active_tools() -> dict[str, str]:
     return {
         "poi": "amap" if _has_amap_key() else "mock",
         "route": "amap" if _has_amap_key() else "mock",
         "budget": "mock",
         "weather": "amap" if _has_amap_key() else "mock",
         "calendar": "mock",
-        "llm": "dashscope"
-        if km.has_key("DASHSCOPE_API_KEY")
-        else ("openai" if km.has_key("OPENAI_API_KEY") else "template"),
+        "llm": _resolve_llm_provider_name(),
         "strict_external_data": "true" if _strict_external_enabled() else "false",
     }
 

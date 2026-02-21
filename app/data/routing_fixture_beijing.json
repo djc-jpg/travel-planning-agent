@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "city": "北京",
+    "description": "Fixture travel-time matrix for deterministic routing fallback"
+  },
+  "pairs": [
+    {
+      "origin": "天安门广场",
+      "destination": "故宫博物院",
+      "minutes": {"walking": 14, "public_transit": 18, "taxi": 11, "driving": 12}
+    },
+    {
+      "origin": "故宫博物院",
+      "destination": "景山公园",
+      "minutes": {"walking": 15, "public_transit": 16, "taxi": 10, "driving": 11}
+    },
+    {
+      "origin": "景山公园",
+      "destination": "北海公园",
+      "minutes": {"walking": 17, "public_transit": 19, "taxi": 12, "driving": 13}
+    },
+    {
+      "origin": "天安门广场",
+      "destination": "中山公园",
+      "minutes": {"walking": 12, "public_transit": 14, "taxi": 9, "driving": 10}
+    },
+    {
+      "origin": "天安门广场",
+      "destination": "天安门城楼",
+      "minutes": {"walking": 8, "public_transit": 10, "taxi": 8, "driving": 8}
+    },
+    {
+      "origin": "天安门广场",
+      "destination": "天坛公园",
+      "minutes": {"walking": 58, "public_transit": 29, "taxi": 18, "driving": 22}
+    },
+    {
+      "origin": "故宫博物院",
+      "destination": "天坛公园",
+      "minutes": {"walking": 71, "public_transit": 36, "taxi": 24, "driving": 27}
+    },
+    {
+      "origin": "正阳门城楼",
+      "destination": "天坛公园",
+      "minutes": {"walking": 46, "public_transit": 24, "taxi": 15, "driving": 18}
+    },
+    {
+      "origin": "老舍故居",
+      "destination": "明城墙遗址公园",
+      "minutes": {"walking": 42, "public_transit": 23, "taxi": 14, "driving": 16}
+    },
+    {
+      "origin": "北海公园",
+      "destination": "老舍故居",
+      "minutes": {"walking": 49, "public_transit": 28, "taxi": 17, "driving": 20}
+    },
+    {
+      "origin": "天坛公园",
+      "destination": "明城墙遗址公园",
+      "minutes": {"walking": 55, "public_transit": 30, "taxi": 18, "driving": 21}
+    },
+    {
+      "origin": "天坛公园",
+      "destination": "龙潭公园",
+      "minutes": {"walking": 31, "public_transit": 16, "taxi": 11, "driving": 12}
+    },
+    {
+      "origin": "明城墙遗址公园",
+      "destination": "龙潭公园",
+      "minutes": {"walking": 38, "public_transit": 19, "taxi": 13, "driving": 14}
+    },
+    {
+      "origin": "正阳门城楼",
+      "destination": "龙潭公园",
+      "minutes": {"walking": 52, "public_transit": 24, "taxi": 15, "driving": 17}
+    }
+  ]
+}

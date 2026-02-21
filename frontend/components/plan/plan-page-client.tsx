@@ -11,7 +11,6 @@ import { z } from "zod";
 
 import { ItineraryRenderer } from "@/components/itinerary-renderer";
 import { Alert } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,9 +29,26 @@ import {
   transportLabels,
   travelerLabels
 } from "@/lib/constants";
+import { formatAssistantMessage } from "@/lib/itinerary-text";
 import { buildPlanMessage, itineraryToMarkdown } from "@/lib/plan-message";
 import { getPlanDraft, savePlanDraft } from "@/lib/storage";
-import type { Itinerary, Pace, PlanFormValues, PlanResponse, TransportMode, TravelersType } from "@/lib/types/api";
+import type {
+  Itinerary,
+  Pace,
+  PlanFormValues,
+  PlanRequest,
+  PlanResponse,
+  TransportMode,
+  TravelersType
+} from "@/lib/types/api";
+
+type PlanRequestSnapshot = {
+  city: string;
+  days: number;
+  budget_per_day?: number;
+  date_start: string;
+  date_end: string;
+};
 
 const planSchema = z.object({
   city: z.string().min(1, "请输入城市"),
@@ -69,9 +85,91 @@ const defaultValues: PlanFormValues = {
   extraNotes: ""
 };
 
+const THEME_SPLITTER = /[、,，;；\s]+/;
+
+function splitThemes(raw: string): string[] {
+  const seen = new Set<string>();
+  const rows: string[] = [];
+  for (const value of raw.split(THEME_SPLITTER).map((item) => item.trim()).filter(Boolean)) {
+    if (seen.has(value)) {
+      continue;
+    }
+    seen.add(value);
+    rows.push(value);
+  }
+  return rows;
+}
+
+function buildStructuredPlanPayload(values: PlanFormValues): PlanRequest {
+  const city = values.city.trim();
+  const themes = splitThemes(values.theme ?? "");
+
+  const constraints: Record<string, unknown> = {
+    city,
+    days: values.days,
+    pace: values.pace,
+    transport_mode: values.transport
+  };
+  if (typeof values.budget === "number" && Number.isFinite(values.budget) && values.budget > 0) {
+    constraints.budget_per_day = values.budget;
+  }
+  if (values.date_start) {
+    constraints.date_start = values.date_start;
+  }
+  if (values.date_end) {
+    constraints.date_end = values.date_end;
+  }
+
+  const user_profile: Record<string, unknown> = {
+    travelers_type: values.travelers
+  };
+  if (themes.length > 0) {
+    user_profile.themes = themes;
+  }
+
+  const metadata: Record<string, unknown> = {
+    source: "web_plan_form",
+    field_sources: {
+      city: "user_form",
+      days: "user_form",
+      date_start: values.date_start ? "user_form" : "missing",
+      date_end: values.date_end ? "user_form" : "missing"
+    }
+  };
+  if (values.extraNotes?.trim()) {
+    metadata.extra_notes = values.extraNotes.trim();
+  }
+
+  return {
+    message: buildPlanMessage(values),
+    constraints,
+    user_profile,
+    metadata
+  };
+}
+
+function buildRequestSnapshot(values: PlanFormValues): PlanRequestSnapshot {
+  const budget =
+    typeof values.budget === "number" && Number.isFinite(values.budget) && values.budget > 0
+      ? values.budget
+      : undefined;
+  return {
+    city: values.city.trim(),
+    days: values.days,
+    budget_per_day: budget,
+    date_start: (values.date_start ?? "").trim(),
+    date_end: (values.date_end ?? "").trim()
+  };
+}
+
+function normalizeDate(value: string | undefined | null): string {
+  return String(value ?? "").trim().slice(0, 10);
+}
+
 export function PlanPageClient() {
   const [latestResponse, setLatestResponse] = useState<PlanResponse | null>(null);
   const [latestItinerary, setLatestItinerary] = useState<Itinerary | null>(null);
+  const [requestSnapshot, setRequestSnapshot] = useState<PlanRequestSnapshot | null>(null);
   const { addHistory } = usePlanHistory();
 
   const form = useForm<PlanFormValues>({
@@ -89,10 +187,13 @@ export function PlanPageClient() {
   }, [form]);
 
   const planMutation = useMutation({
-    mutationFn: async (values: PlanFormValues) => {
+    onMutate: (values: PlanFormValues) => {
       savePlanDraft(values);
-      return apiClient.plan({ message: buildPlanMessage(values) });
+      setRequestSnapshot(buildRequestSnapshot(values));
+      setLatestResponse(null);
+      setLatestItinerary(null);
     },
+    mutationFn: async (values: PlanFormValues) => apiClient.plan(buildStructuredPlanPayload(values)),
     onSuccess: (response, variables) => {
       setLatestResponse(response);
       setLatestItinerary(response.itinerary ?? null);
@@ -100,6 +201,8 @@ export function PlanPageClient() {
       toast.success("行程生成成功");
     },
     onError: (error) => {
+      setLatestResponse(null);
+      setLatestItinerary(null);
       toast.error(toUserMessage(error));
     }
   });
@@ -110,6 +213,41 @@ export function PlanPageClient() {
     }
     return latestItinerary.total_cost / latestItinerary.days.length;
   }, [latestItinerary]);
+
+  const displayedMessage = useMemo(
+    () => formatAssistantMessage(latestResponse?.message, Boolean(latestItinerary)),
+    [latestItinerary, latestResponse?.message]
+  );
+
+  const requestSummary = useMemo(() => {
+    if (!requestSnapshot) {
+      return "";
+    }
+    const parts = [`本次请求：${requestSnapshot.city} · ${requestSnapshot.days}天`];
+    if (requestSnapshot.budget_per_day) {
+      parts.push(`预算目标 ${requestSnapshot.budget_per_day} 元/天`);
+    }
+    if (requestSnapshot.date_start || requestSnapshot.date_end) {
+      parts.push(`日期 ${requestSnapshot.date_start || "未填"} ~ ${requestSnapshot.date_end || "未填"}`);
+    }
+    return parts.join(" · ");
+  }, [requestSnapshot]);
+
+  const dateMismatchWarning = useMemo(() => {
+    if (!requestSnapshot || !latestItinerary?.days?.length) {
+      return "";
+    }
+    const requestedStart = normalizeDate(requestSnapshot.date_start);
+    if (!requestedStart) {
+      return "";
+    }
+    const firstDayWithDate = latestItinerary.days.find((day) => Boolean(day.date));
+    const itineraryStart = normalizeDate(firstDayWithDate?.date);
+    if (!itineraryStart || itineraryStart === requestedStart) {
+      return "";
+    }
+    return `你选择 ${requestedStart} 出发，但结果从 ${itineraryStart} 开始。请重试，或检查后端日期约束是否生效。`;
+  }, [latestItinerary, requestSnapshot]);
 
   const handleCopyJson = async () => {
     if (!latestItinerary) {
@@ -142,10 +280,7 @@ export function PlanPageClient() {
   };
 
   const addTheme = (theme: string) => {
-    const existing = themeValue
-      .split(/[、,，\s]+/)
-      .map((item) => item.trim())
-      .filter(Boolean);
+    const existing = splitThemes(themeValue);
     if (existing.includes(theme)) {
       form.setValue(
         "theme",
@@ -176,10 +311,7 @@ export function PlanPageClient() {
     toast.success("已应用模板，请补充城市后生成");
   };
 
-  const selectedThemes = themeValue
-    .split(/[、,，\s]+/)
-    .map((item) => item.trim())
-    .filter(Boolean);
+  const selectedThemes = themeValue ? splitThemes(themeValue) : [];
 
   return (
     <main className="page-container space-y-6">
@@ -357,7 +489,9 @@ export function PlanPageClient() {
         </Card>
       ) : null}
 
-      {latestResponse?.message ? <Alert>{latestResponse.message}</Alert> : null}
+      {displayedMessage ? <Alert>{displayedMessage}</Alert> : null}
+      {requestSummary && (planMutation.isPending || latestItinerary) ? <Alert>{requestSummary}</Alert> : null}
+      {dateMismatchWarning ? <Alert variant="destructive">{dateMismatchWarning}</Alert> : null}
 
       {latestItinerary ? (
         <div className="space-y-4">
@@ -384,7 +518,10 @@ export function PlanPageClient() {
               </Button>
             </CardContent>
           </Card>
-          <ItineraryRenderer itinerary={latestItinerary} />
+          <ItineraryRenderer
+            itinerary={latestItinerary}
+            requestedBudgetPerDay={requestSnapshot?.budget_per_day}
+          />
         </div>
       ) : null}
     </main>

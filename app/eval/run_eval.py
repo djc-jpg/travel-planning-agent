@@ -1,15 +1,17 @@
-"""Eval runner with scoring, regression checks, and persisted reports."""
+﻿"""Eval runner with scoring, regression checks, and persisted reports."""
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 import json
 import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from app.application.graph.workflow import compile_graph
-from app.application.state_factory import make_initial_state
+from app.application.context import make_app_context
+from app.application.contracts import TripRequest, TripResult
+from app.application.plan_trip import plan_trip
 from app.domain.models import Itinerary
 from app.security.redact import redact_sensitive
 
@@ -22,10 +24,57 @@ def _load_cases() -> list[dict]:
         return json.load(fh)
 
 
-def _make_state(message: str) -> dict[str, Any]:
-    state = make_initial_state()
-    state["messages"] = [{"role": "user", "content": message}]
-    return state
+def run_request(message: str, ctx=None) -> dict[str, Any]:
+    active_ctx = ctx or make_app_context()
+    result = plan_trip(TripRequest(message=message), active_ctx)
+    return result.model_dump(mode="json")
+
+
+def _score_concurrency_isolation(ctx, requests: int = 20) -> dict[str, Any]:
+    details: list[str] = []
+
+    def _run(idx: int) -> tuple[str, dict[str, Any]]:
+        session_id = f"eval_iso_{idx:02d}"
+        request = TripRequest(
+            message=f"我想去杭州玩2天，出发2026-04-01，返程2026-04-02，请求{idx}",
+            session_id=session_id,
+            constraints={
+                "city": "杭州",
+                "days": 2,
+                "date_start": "2026-04-01",
+                "date_end": "2026-04-02",
+            },
+        )
+        return session_id, plan_trip(request, ctx).model_dump(mode="json")
+
+    with ThreadPoolExecutor(max_workers=requests) as pool:
+        rows = list(pool.map(_run, range(requests)))
+
+    expected = {session_id for session_id, _ in rows}
+    actual = {row.get("session_id", "") for _, row in rows}
+    if expected != actual:
+        details.append("session_id mismatch across concurrent requests")
+
+    unexpected_status = [
+        row.get("status", "unknown")
+        for _, row in rows
+        if row.get("status") not in {"done", "clarifying"}
+    ]
+    if unexpected_status:
+        details.append("unexpected statuses: " + ",".join(sorted(set(unexpected_status))))
+
+    exists_fn = getattr(ctx.session_store, "exists", None)
+    if callable(exists_fn):
+        missing = [session_id for session_id in expected if not exists_fn(session_id)]
+        if missing:
+            details.append(f"session store missing keys: {len(missing)}")
+
+    score = 1.0 if not details else 0.0
+    return {
+        "score": score,
+        "details": details or ["ok"],
+        "requests": requests,
+    }
 
 
 def _score_case(case: dict, result: dict) -> dict[str, Any]:
@@ -34,11 +83,26 @@ def _score_case(case: dict, result: dict) -> dict[str, Any]:
     details: list[str] = []
     status = result.get("status", "unknown")
 
-    if expect.get("status") == "clarifying":
-        scores["status_match"] = 1.0 if status == "clarifying" else 0.0
-        return {"scores": scores, "details": details, "total": sum(scores.values()) / max(len(scores), 1)}
+    try:
+        parsed = TripResult.model_validate(result)
+        scores["contract_validity"] = 1.0
+    except Exception as exc:
+        parsed = None
+        scores["contract_validity"] = 0.0
+        details.append(f"contract validation failed: {redact_sensitive(str(exc))}")
 
-    final = result.get("final_itinerary")
+    expects_clarifying = expect.get("status") == "clarifying"
+    scores["clarifying_correctness"] = 1.0 if ((status == "clarifying") == expects_clarifying) else 0.0
+
+    if expects_clarifying:
+        scores["status_match"] = 1.0 if status == "clarifying" else 0.0
+        return {
+            "scores": scores,
+            "details": details,
+            "total": sum(scores.values()) / max(len(scores), 1),
+        }
+
+    final = result.get("itinerary")
     if final:
         try:
             itinerary = Itinerary.model_validate(final)
@@ -58,6 +122,9 @@ def _score_case(case: dict, result: dict) -> dict[str, Any]:
         scores.setdefault("budget_ok", 0.5)
         scores.setdefault("theme_hit", 0.0)
         scores.setdefault("travel_time", 0.5)
+        if parsed is not None and status == "done":
+            scores["contract_validity"] = 0.0
+            details.append("done status without itinerary")
         total = sum(scores.values()) / max(len(scores), 1)
         return {"scores": scores, "details": details, "total": total}
 
@@ -108,7 +175,7 @@ def _score_case(case: dict, result: dict) -> dict[str, Any]:
 
 def run_eval():
     cases = _load_cases()
-    graph = compile_graph()
+    ctx = make_app_context()
 
     print("=" * 60)
     print("trip-agent eval report")
@@ -124,7 +191,7 @@ def run_eval():
 
         start = time.time()
         try:
-            result = graph.invoke(_make_state(case["input"]))
+            result = run_request(case["input"], ctx=ctx)
             elapsed = time.time() - start
             score_info = _score_case(case, result)
         except Exception as exc:
@@ -145,7 +212,9 @@ def run_eval():
             }
         )
 
-        status_icon = "PASS" if score_info["total"] >= 0.8 else ("WARN" if score_info["total"] >= 0.5 else "FAIL")
+        status_icon = "PASS" if score_info["total"] >= 0.8 else (
+            "WARN" if score_info["total"] >= 0.5 else "FAIL"
+        )
         print(f"\n{status_icon} [{case_id}] {name}")
         print(f"  score: {score_info['total']:.2f} | elapsed: {elapsed:.2f}s")
         for key, value in score_info["scores"].items():
@@ -156,10 +225,15 @@ def run_eval():
     avg = total_score / len(cases) if cases else 0.0
     passed = sum(1 for row in results if row["total"] >= 0.8)
     pass_rate = (passed / len(cases)) if cases else 0.0
+    concurrency_metric = _score_concurrency_isolation(ctx, requests=20)
 
     print("\n" + "=" * 60)
     print(f"average: {avg:.2f} ({len(cases)} cases)")
     print(f"pass rate: {passed}/{len(cases)} ({pass_rate * 100:.0f}%)")
+    print(
+        "concurrency_isolation: "
+        f"{concurrency_metric['score']:.2f} ({'; '.join(concurrency_metric['details'])})"
+    )
     print("=" * 60)
 
     regressions = _check_regression(results)
@@ -176,6 +250,9 @@ def run_eval():
         "passed": passed,
         "results": results,
         "regressions": regressions,
+        "extra_metrics": {
+            "concurrency_isolation": concurrency_metric,
+        },
     }
     _save_report(report)
     return results
@@ -230,4 +307,3 @@ def _load_last_report() -> dict | None:
 
 if __name__ == "__main__":
     run_eval()
-

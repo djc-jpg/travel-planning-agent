@@ -36,8 +36,9 @@ def _llm_extract(text: str) -> dict | None:
     成功返回 dict，失败返回 None（降级到正则）。
     """
     try:
-        from app.infrastructure.llm_factory import get_llm
         import json as _json
+
+        from app.infrastructure.llm_factory import get_llm
 
         llm = get_llm()
         if llm is None:
@@ -52,7 +53,11 @@ def _llm_extract(text: str) -> dict | None:
             "- total_budget: 总预算（数字，元）\n"
             "- pace: 节奏（'relaxed'/'moderate'/'intensive'）\n"
             "- transport_mode: 交通方式（'walking'/'public_transit'/'taxi'/'driving'）\n"
-            "- themes: 偏好主题列表（如['历史','美食','自然','文艺','网红','亲子','购物','夜景']）\n"
+            "- holiday_hint: 节假日提示（如春节则填'spring_festival'）\n"
+            "- travelers_count: 出行人数（整数）\n"
+            "- must_visit: 必去景点列表（字符串数组）\n"
+            "- free_only: 是否仅免费景点（布尔值）\n"
+            "- themes: 偏好主题列表（如['历史','美食','自然','亲子','夜景']）\n"
             "- travelers_type: 出行人群（'solo'/'couple'/'family'/'friends'/'elderly'）\n"
             "- food_constraints: 饮食禁忌列表（如['素食','清真','无辣']）\n"
             "\n用户未提及的字段请省略不写。\n\n"
@@ -81,7 +86,8 @@ def intake_node(state: dict[str, Any]) -> dict[str, Any]:
     if not messages:
         return {"requirements_missing": ["city", "days"], "status": "clarifying"}
 
-    last_msg = messages[-1].get("content", "") if isinstance(messages[-1], dict) else str(messages[-1])
+    last = messages[-1]
+    last_msg = last.get("content", "") if isinstance(last, dict) else str(last)
 
     # 解析约束
     constraints = state.get("trip_constraints", {})

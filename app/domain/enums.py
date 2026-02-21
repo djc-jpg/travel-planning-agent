@@ -37,3 +37,8 @@ class TimeSlot(str, Enum):
     DINNER = "dinner"
     EVENING = "evening"
 
+
+class PoiSemanticType(str, Enum):
+    EXPERIENCE = "experience"
+    INFRASTRUCTURE = "infrastructure"
+    UNKNOWN = "unknown"

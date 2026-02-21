@@ -47,7 +47,12 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Lint
-        run: ruff check --select E9,F app tests
+        run: ruff check --select E9,F app tests tools eval
+
+      - name: Architecture Guards
+        run: |
+          python tools/check_import_boundaries.py
+          python tools/check_single_entrypoint.py
 
       - name: Test
         run: |
@@ -56,6 +61,18 @@ jobs:
             --cov=app \
             --cov-report=term-missing \
             --cov-fail-under=40
+
+      - name: Eval (app)
+        if: matrix.python-version == '3.11'
+        run: python -m app.eval.run_eval
+
+      - name: Eval (structured)
+        if: matrix.python-version == '3.11'
+        run: PYTHONPATH=. python eval/run.py --cases eval/cases.json --out eval/reports --tag ci
+
+      - name: Release Gate
+        if: matrix.python-version == '3.11'
+        run: PYTHONPATH=. python -m eval.release_gate_runner
 
   frontend:
     runs-on: ubuntu-latest

@@ -1,0 +1,49 @@
+services:
+  backend:
+    build:
+      context: .
+    environment:
+      API_BEARER_TOKEN: ${API_BEARER_TOKEN:-}
+      ALLOW_UNAUTHENTICATED_API: ${ALLOW_UNAUTHENTICATED_API:-true}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      CORS_ALLOW_CREDENTIALS: ${CORS_ALLOW_CREDENTIALS:-false}
+      GRAPH_TIMEOUT_SECONDS: ${GRAPH_TIMEOUT_SECONDS:-120}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-60}
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-60}
+      ENGINE_VERSION: ${ENGINE_VERSION:-v1}
+      STRICT_REQUIRED_FIELDS: ${STRICT_REQUIRED_FIELDS:-false}
+      STRICT_EXTERNAL_DATA: ${STRICT_EXTERNAL_DATA:-false}
+      ROUTING_PROVIDER: ${ROUTING_PROVIDER:-auto}
+      DEFAULT_SPRING_FESTIVAL_DATE: ${DEFAULT_SPRING_FESTIVAL_DATE:-2026-02-17}
+      FOOD_MIN_PER_PERSON_PER_DAY: ${FOOD_MIN_PER_PERSON_PER_DAY:-60}
+      AMAP_API_KEY: ${AMAP_API_KEY:-}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      ENV_SOURCE: ${ENV_SOURCE:-.env}
+      REDIS_URL: ${REDIS_URL:-}
+      RATE_LIMIT_REDIS_URL: ${RATE_LIMIT_REDIS_URL:-}
+      ALLOW_INMEMORY_BACKEND: ${ALLOW_INMEMORY_BACKEND:-true}
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      API_BASE_URL: ${API_BASE_URL:-http://backend:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    profiles: ["infra"]
+    restart: unless-stopped
