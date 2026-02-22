@@ -74,3 +74,4 @@ $env:RATE_LIMIT_WINDOW="60"
 - 500 并发容量目标：已通过（`eval/reports/loadtest_20260222_071446.json`，`success_rate=1.0`, `p95=1986.35ms`）
 - SLO 校验：降级档已通过（`eval/reports/slo_latest.json`）；实时档需在真实外部依赖流量环境复核
 - 观测栈连通性：已通过（`eval/reports/observability_stack_latest.json`）
+- realtime SLO 复核：已完成（`eval/reports/slo_realtime_latest.json`），当前未达标（`p95=7785.01ms`, `l3_ratio=0.35`, `l0_ratio=0.0`）

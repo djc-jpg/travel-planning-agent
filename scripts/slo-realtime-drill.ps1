@@ -1,9 +1,8 @@
 param(
     [string]$BindHost = "127.0.0.1",
-    [int]$Port = 18300,
+    [int]$Port = 18310,
     [int]$Requests = 20,
-    [ValidateSet("auto", "realtime", "degraded")]
-    [string]$Profile = "degraded"
+    [string]$EnvFile = ".env.prerelease"
 )
 
 Set-StrictMode -Version Latest
@@ -13,4 +12,6 @@ python -m app.deploy.slo_drill `
   --host $BindHost `
   --port $Port `
   --requests $Requests `
-  --profile $Profile
+  --profile realtime `
+  --env-file $EnvFile `
+  --output "eval/reports/slo_realtime_latest.json"

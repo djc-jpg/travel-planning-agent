@@ -31,6 +31,11 @@
 .\scripts\slo-drill.ps1 -Profile degraded
 ```
 
+realtime 档复核（真实 key + 外部依赖）：
+```powershell
+.\scripts\slo-realtime-drill.ps1 -EnvFile .env.prerelease
+```
+
 基于实时 `/metrics` 直接校验：
 ```powershell
 python -m tools.slo_check --base-url http://127.0.0.1:8000 --profile auto
