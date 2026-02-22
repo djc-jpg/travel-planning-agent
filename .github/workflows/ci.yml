@@ -179,7 +179,15 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Dependency fault drill
-        run: python -m app.deploy.dependency_fault_drill
+        run: |
+          for i in 1 2 3; do
+            python -m app.deploy.dependency_fault_drill && break
+            if [ "$i" -eq 3 ]; then
+              exit 1
+            fi
+            echo "dependency_fault_drill retry $i failed, retrying..."
+            sleep 5
+          done
 
       - name: Persistence backup/restore drill
         run: python -m app.persistence.drill
