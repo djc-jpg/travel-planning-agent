@@ -1,11 +1,153 @@
 ﻿{
-    "generated_at":  "2026-02-22T22:16:00.0150301+08:00",
+    "generated_at":  "2026-02-22T23:21:26.9331061+08:00",
     "repository":  "djc-jpg/travel-planning-agent",
     "branch":  "wip/p0-sync-20260222",
-    "latest_run_id":  22278380739,
-    "latest_run_conclusion":  "failure",
-    "latest_all_green":  false,
+    "latest_run_id":  22279367015,
+    "latest_run_conclusion":  "success",
+    "latest_all_green":  true,
     "runs":  [
+                 {
+                     "run_id":  22279367015,
+                     "run_number":  5,
+                     "workflow_name":  "CI",
+                     "status":  "completed",
+                     "conclusion":  "success",
+                     "event":  "push",
+                     "head_sha":  "4431b8aa9d9acb9676ec5d18419658e6c30be133",
+                     "display_title":  "drill: accept strict fail-fast 500 in CI and compact evidence",
+                     "created_at":  "2026-02-22T14:52:12Z",
+                     "updated_at":  "2026-02-22T14:54:40Z",
+                     "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22279367015",
+                     "jobs":  [
+                                  {
+                                      "name":  "secret-scan",
+                                      "status":  "completed",
+                                      "conclusion":  "success",
+                                      "started_at":  "2026-02-22T14:52:14Z",
+                                      "completed_at":  "2026-02-22T14:52:21Z",
+                                      "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22279367015/job/64447440054"
+                                  },
+                                  {
+                                      "name":  "frontend",
+                                      "status":  "completed",
+                                      "conclusion":  "success",
+                                      "started_at":  "2026-02-22T14:52:22Z",
+                                      "completed_at":  "2026-02-22T14:53:05Z",
+                                      "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22279367015/job/64447445294"
+                                  },
+                                  {
+                                      "name":  "operational-drills",
+                                      "status":  "completed",
+                                      "conclusion":  "success",
+                                      "started_at":  "2026-02-22T14:52:23Z",
+                                      "completed_at":  "2026-02-22T14:52:49Z",
+                                      "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22279367015/job/64447445296"
+                                  },
+                                  {
+                                      "name":  "test (3.13)",
+                                      "status":  "completed",
+                                      "conclusion":  "success",
+                                      "started_at":  "2026-02-22T14:52:23Z",
+                                      "completed_at":  "2026-02-22T14:52:59Z",
+                                      "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22279367015/job/64447445297"
+                                  },
+                                  {
+                                      "name":  "test (3.11)",
+                                      "status":  "completed",
+                                      "conclusion":  "success",
+                                      "started_at":  "2026-02-22T14:52:22Z",
+                                      "completed_at":  "2026-02-22T14:52:52Z",
+                                      "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22279367015/job/64447445300"
+                                  },
+                                  {
+                                      "name":  "frontend-e2e",
+                                      "status":  "completed",
+                                      "conclusion":  "success",
+                                      "started_at":  "2026-02-22T14:53:02Z",
+                                      "completed_at":  "2026-02-22T14:54:19Z",
+                                      "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22279367015/job/64447467776"
+                                  },
+                                  {
+                                      "name":  "docker",
+                                      "status":  "completed",
+                                      "conclusion":  "success",
+                                      "started_at":  "2026-02-22T14:54:21Z",
+                                      "completed_at":  "2026-02-22T14:54:39Z",
+                                      "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22279367015/job/64447515807"
+                                  }
+                              ]
+                 },
+                 {
+                     "run_id":  22278870433,
+                     "run_number":  4,
+                     "workflow_name":  "CI",
+                     "status":  "completed",
+                     "conclusion":  "failure",
+                     "event":  "push",
+                     "head_sha":  "db7da5056ab55724a3c3a38448561e73486217ac",
+                     "display_title":  "docs: archive latest remote ci run evidence",
+                     "created_at":  "2026-02-22T14:19:50Z",
+                     "updated_at":  "2026-02-22T14:21:53Z",
+                     "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22278870433",
+                     "jobs":  [
+                                  {
+                                      "name":  "secret-scan",
+                                      "status":  "completed",
+                                      "conclusion":  "success",
+                                      "started_at":  "2026-02-22T14:19:53Z",
+                                      "completed_at":  "2026-02-22T14:20:00Z",
+                                      "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22278870433/job/64445710790"
+                                  },
+                                  {
+                                      "name":  "frontend",
+                                      "status":  "completed",
+                                      "conclusion":  "success",
+                                      "started_at":  "2026-02-22T14:20:02Z",
+                                      "completed_at":  "2026-02-22T14:20:50Z",
+                                      "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22278870433/job/64445716590"
+                                  },
+                                  {
+                                      "name":  "test (3.11)",
+                                      "status":  "completed",
+                                      "conclusion":  "success",
+                                      "started_at":  "2026-02-22T14:20:02Z",
+                                      "completed_at":  "2026-02-22T14:20:31Z",
+                                      "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22278870433/job/64445716593"
+                                  },
+                                  {
+                                      "name":  "test (3.13)",
+                                      "status":  "completed",
+                                      "conclusion":  "success",
+                                      "started_at":  "2026-02-22T14:20:02Z",
+                                      "completed_at":  "2026-02-22T14:20:33Z",
+                                      "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22278870433/job/64445716600"
+                                  },
+                                  {
+                                      "name":  "operational-drills",
+                                      "status":  "completed",
+                                      "conclusion":  "failure",
+                                      "started_at":  "2026-02-22T14:20:02Z",
+                                      "completed_at":  "2026-02-22T14:20:47Z",
+                                      "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22278870433/job/64445716601"
+                                  },
+                                  {
+                                      "name":  "frontend-e2e",
+                                      "status":  "completed",
+                                      "conclusion":  "success",
+                                      "started_at":  "2026-02-22T14:20:35Z",
+                                      "completed_at":  "2026-02-22T14:21:52Z",
+                                      "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22278870433/job/64445747413"
+                                  },
+                                  {
+                                      "name":  "docker",
+                                      "status":  "completed",
+                                      "conclusion":  "skipped",
+                                      "started_at":  "2026-02-22T14:21:53Z",
+                                      "completed_at":  "2026-02-22T14:21:52Z",
+                                      "html_url":  "https://github.com/djc-jpg/travel-planning-agent/actions/runs/22278870433/job/64445858875"
+                                  }
+                              ]
+                 },
                  {
                      "run_id":  22278380739,
                      "run_number":  3,
