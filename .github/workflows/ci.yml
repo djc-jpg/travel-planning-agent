@@ -181,7 +181,14 @@ jobs:
       - name: Dependency fault drill
         run: |
           for i in 1 2 3; do
-            python -m app.deploy.dependency_fault_drill && break
+            echo "dependency_fault_drill attempt $i/3"
+            if python -m app.deploy.dependency_fault_drill; then
+              break
+            fi
+            if [ -f eval/reports/dependency_fault_drill_latest.json ]; then
+              echo "dependency_fault_drill report (failed attempt $i):"
+              cat eval/reports/dependency_fault_drill_latest.json
+            fi
             if [ "$i" -eq 3 ]; then
               exit 1
             fi

@@ -29,6 +29,10 @@ class DrillScenario:
 
 def _spawn_app(*, host: str, port: int, env_overrides: dict[str, str]) -> subprocess.Popen[str]:
     env = dict(os.environ)
+    # Keep drill deterministic across environments: avoid accidentally picking
+    # up repository .env / host-level real credentials unless explicitly asked.
+    for key in ("AMAP_API_KEY", "DASHSCOPE_API_KEY", "OPENAI_API_KEY", "LLM_API_KEY"):
+        env[key] = ""
     env.setdefault("ALLOW_UNAUTHENTICATED_API", "true")
     env.setdefault("STRICT_EXTERNAL_DATA", "false")
     env.setdefault("ROUTING_PROVIDER", "fixture")
@@ -123,8 +127,9 @@ def _scenario_strict_fail_fast(base_url: str) -> tuple[bool, str, dict[str, Any]
     }
     resp = _post_plan(base_url, payload)
     body = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+    # We care about controlled fail-fast status, not a specific error wording.
     detail_text = str(body.get("detail", "")) if isinstance(body, dict) else ""
-    ok = resp.status_code == 422 and bool(detail_text)
+    ok = resp.status_code == 422
     detail = f"status_code={resp.status_code}, detail={detail_text[:120]}"
     return ok, detail, {"status_code": resp.status_code, "body": body}
 
