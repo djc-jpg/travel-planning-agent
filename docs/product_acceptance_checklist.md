@@ -16,7 +16,7 @@ python -m tools.product_acceptance
 - 目标：`STRICT_EXTERNAL_DATA=true` 且外部 key 缺失时必须失败。
 - 命令：
 ```powershell
-python -m app.deploy.preflight --json
+python -m app.deploy.preflight --env-file .env.prerelease --skip-smoke
 ```
 - 期望：
   - 若 `STRICT_EXTERNAL_DATA=true` 且未配置 `AMAP_API_KEY`，报告包含 `strict_external_data=FAIL`。

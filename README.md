@@ -14,6 +14,8 @@
 - 🏙️ **多城市支持**：内置 10 城 120+ 景点数据（北京/上海/杭州/成都/西安/广州/南京/重庆/长沙/厦门）
 - 🤖 **LLM 兜底**：本地无数据的城市（如丽江、三亚）由 LLM 实时生成真实景点
 - 💬 **多轮对话**：自然追问补充信息，支持 CLI 和 API 两种交互方式
+- 🛠️ **结构化局部编辑**：支持 `replace_stop` / `add_stop` / `remove_stop` / `adjust_time` / `lunch_break`
+- 📤 **导出能力**：支持行程导出 `JSON` 与 `Markdown`
 - ✅ **自动验证修复**：时间/距离/预算/节奏校验 + 最多 3 轮自动修复
 
 ## 架构总览
@@ -76,10 +78,14 @@ cp .env.example .env
 | `DASHSCOPE_API_KEY` | 阿里云通义千问 LLM 服务 | 否（无则用模板模式） |
 | `AMAP_API_KEY` | 高德地图 POI + 路线 | 否（无则用本地数据） |
 | `OPENAI_API_KEY` | OpenAI LLM 服务（替代方案） | 否 |
+| `API_BEARER_TOKEN` | 后端 API Bearer 鉴权令牌 | 生产/预发布建议必填 |
+| `ALLOW_UNAUTHENTICATED_API` | 允许无鉴权访问 API（仅本地调试） | 否（默认本地 `true`，预发布 `false`） |
+| `STRICT_EXTERNAL_DATA` | 强制外部数据 fail-fast（无 key 或不可用即失败） | 否 |
 | `LLM_MODEL` | 指定模型名（默认 qwen3-coder-plus） | 否 |
 | `ROUTING_PROVIDER` | `fixture`/`real`/`auto`（默认 `auto`） | 否 |
 | `FOOD_MIN_PER_PERSON_PER_DAY` | 餐饮最低预算（默认 `60`） | 否 |
 | `DEFAULT_SPRING_FESTIVAL_DATE` | 春节场景默认起始日（默认 `2026-02-17`） | 否 |
+| `API_BASE_URL` | 前端服务端代理转发到后端的地址 | 否（默认 `http://localhost:8000`） |
 
 **优先级**：`DASHSCOPE_API_KEY` > `OPENAI_API_KEY` > `LLM_API_KEY`
 
@@ -118,8 +124,19 @@ uvicorn app.api.main:app --reload
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | `/health` | 健康检查 |
+| GET | `/metrics` | 运行指标快照 |
+| GET | `/diagnostics` | 诊断信息（需 `ENABLE_DIAGNOSTICS=true` + `DIAGNOSTICS_TOKEN`） |
 | POST | `/plan` | 一次性规划 `{"message": "..."}` |
 | POST | `/chat` | 多轮对话 `{"session_id": "xxx", "message": "..."}` |
+| GET | `/sessions` | 会话列表（需 API 鉴权） |
+| GET | `/sessions/{session_id}/history` | 会话历史（需 API 鉴权） |
+| GET | `/plans/{request_id}/export` | 导出 JSON（需 API 鉴权） |
+| GET | `/plans/{request_id}/export?format=markdown` | 导出 Markdown（需 API 鉴权） |
+
+鉴权说明：
+- 默认采用 fail-closed 策略：未配置 `API_BEARER_TOKEN` 且 `ALLOW_UNAUTHENTICATED_API=false` 时，API 返回 `503`。
+- 本地开发可使用 `.env.example` 默认值（`ALLOW_UNAUTHENTICATED_API=true`）。
+- 预发布/生产请设置 `API_BEARER_TOKEN`，并保持 `ALLOW_UNAUTHENTICATED_API=false`。
 
 ### 6. Docker 部署
 
@@ -186,18 +203,20 @@ pytest tests/ -v
 | 模块 | 职责 |
 |------|------|
 | `app/domain/` | Pydantic 领域模型（TripConstraints, UserProfile, POI, Itinerary 等） |
-| `app/agent/` | LangGraph 节点 & 状态机编排 |
-| `app/agent/nodes/` | 各业务节点（intake, clarify, retrieve, validate, repair, finalize） |
-| `app/agent/utils.py` | 公共解析工具（城市/天数/预算提取、LLM/正则双路策略） |
-| `app/agent/llm_factory.py` | LLM 工厂（DashScope / OpenAI / 自定义端点） |
-| `app/tools/` | 工具接口 & 适配器（mock / real） |
-| `app/tools/adapters/` | 高德地图真实 API 适配器（POI 搜索 + 路线规划） |
-| `app/validators/` | 规则验证器（时间/距离/预算/节奏/备选） |
-| `app/retrieval/` | 候选召回（规则 + 向量 hybrid） |
-| `app/api/` | FastAPI 服务端（含 CORS 支持） |
-| `app/services/` | Session 存储 |
-| `app/eval/` | 回归评测 |
-| `app/observability/` | 结构化日志 |
+| `app/application/` | 单入口编排（`plan_trip`）、图状态、局部编辑补丁 |
+| `app/application/graph/` | 核心节点与工作流（intake/clarify/retrieve/validate/repair/finalize） |
+| `app/services/` | API/CLI 服务层（执行规划、历史查询、导出格式化） |
+| `app/adapters/` | 外部能力适配器（高德 POI/路线、天气、日历）与工具工厂 |
+| `app/tools/` | 工具输入输出接口与共享协议层 |
+| `app/planner/` | 行程排程、路由可信度、预算与现实性计算 |
+| `app/repair/` | 行程修复与重排策略 |
+| `app/trust/` | 事实来源分类、置信度评分、约束满足度 |
+| `app/persistence/` | 持久化模型与仓储实现（SQLite/内存） |
+| `app/infrastructure/` | LLM 工厂、缓存、限流、会话存储等基础设施 |
+| `app/api/` | FastAPI API（鉴权、限流、中间件、契约） |
+| `app/observability/` | 结构化日志、指标采集与诊断快照 |
+| `app/agent/` | 兼容层（保留旧命名空间，转发到 `app.application`） |
+| `app/eval/` | 回归评测与发布门禁 |
 
 ## 核心设计
 
@@ -242,38 +261,35 @@ pytest tests/ -v
 
 ```
 app/
-├── cli.py                    # CLI 入口（单轮/多轮 + 格式化输出）
-├── domain/models.py          # Pydantic 领域模型
-├── agent/
-│   ├── graph.py              # LangGraph StateGraph 编排
-│   ├── state.py              # AgentState
-│   ├── planner_core.py       # 纯算法行程生成
-│   ├── planner_nlg.py        # LLM/模板文案（100-150字详细指南）
-│   ├── llm_factory.py        # LLM 工厂（DashScope/OpenAI）
-│   ├── utils.py              # 公共解析工具
-│   ├── requirements.py       # 缺参规则
-│   ├── repair_strategies.py  # 修复策略
-│   └── nodes/                # 业务节点
-├── tools/
-│   ├── config.py             # Mock/Real 自动选择
-│   └── adapters/             # mock_poi, real_poi, real_route...
-├── validators/               # 5 个规则验证器
-├── retrieval/                # 向量 + 规则混合检索
-├── api/main.py               # FastAPI（CORS + 异常捕获）
-├── eval/                     # 评测（16 条用例）
-├── data/poi_v1.json          # 120+ POI 数据
-└── observability/            # 结构化日志
+├── cli.py                    # CLI 入口
+├── api/main.py               # FastAPI 入口（/plan /chat /sessions /export）
+├── application/              # 单入口编排与工作流
+│   ├── plan_trip.py
+│   ├── itinerary_edit.py
+│   └── graph/
+├── services/                 # plan/history/export 服务层
+├── adapters/                 # 外部 API 适配器与工具工厂
+├── infrastructure/           # 缓存/限流/LLM 工厂/会话存储
+├── planner/                  # 排程、预算、路线可信度
+├── repair/                   # 修复策略
+├── trust/                    # 事实分类 + 置信度
+├── persistence/              # repository + sqlite backend
+├── domain/                   # 领域模型
+├── tools/                    # tool interfaces / shared schemas
+├── data/                     # 内置 POI 与路由 fixture
+├── observability/            # 指标与日志
+└── agent/                    # 旧路径兼容层（逐步收敛中）
+frontend/                     # Next.js 控制台
 tests/                        # pytest 测试套件
-Dockerfile                    # Docker 部署
-pyproject.toml                # 项目元数据
-.env.example                  # 环境变量模板
+docs/                         # runbook / 架构快照 / 验收清单
+tools/                        # 质量门禁与验收脚本
 ```
 
 ## 扩展
 
 - **更多城市**：编辑 `app/data/poi_v1.json` 添加 POI，或配置 `AMAP_API_KEY` 使用高德在线搜索
 - **LLM 提供商**：设置 `LLM_BASE_URL` + `LLM_API_KEY` 接入任意 OpenAI 兼容端点
-- **向量检索**：安装 `faiss-cpu` + `sentence-transformers` 启用 hybrid retrieval
+- **检索增强（可选）**：安装 `faiss-cpu` + `sentence-transformers`（`pip install -e .[retrieval]`）用于实验型语义召回
 - **前端对接**：API 已启用 CORS，可直接从浏览器/前端应用调用
 
 ## Pre-release Quick Start
@@ -354,6 +370,10 @@ docker compose up --build
 - No external keys configured: system starts in degraded mode and still generates itineraries.
 - With real keys configured (`AMAP_API_KEY` + optional LLM key): system can run realtime providers.
 - With `STRICT_EXTERNAL_DATA=true`: missing/unavailable required external data must fail fast (no silent fallback).
+- API auth:
+  - local default: `ALLOW_UNAUTHENTICATED_API=true`
+  - prerelease/production: set `API_BEARER_TOKEN` and keep `ALLOW_UNAUTHENTICATED_API=false`
+- Frontend uses server-side proxy (`/api/backend/...`) and forwards to `API_BASE_URL` (no public token required in browser env).
 
 ### Validation commands
 
@@ -363,4 +383,5 @@ pytest -q -p no:cacheprovider
 python -m app.eval.run_eval
 python -m eval.release_gate_runner
 python -m tools.release_summary
+python -m tools.product_acceptance --full
 ```

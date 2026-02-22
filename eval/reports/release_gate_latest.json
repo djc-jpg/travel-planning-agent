@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-22T00:50:21",
+  "generated_at": "2026-02-22T12:12:17",
   "config_path": "D:\\xiaohuanly\\eval\\release_gate.json",
   "cases_path": "D:\\xiaohuanly\\eval\\cases.json",
   "metrics": {
@@ -21,7 +21,7 @@
     "confidence_mean": 0.699,
     "confidence_p50": 0.7,
     "confidence_p90": 1.0,
-    "p95_latency_ms": 174.71,
+    "p95_latency_ms": 156.12,
     "concurrency_isolation": 1.0,
     "edit_roundtrip_pass_rate": 1.0
   },
@@ -130,9 +130,9 @@
       "routing_mode_case": "real",
       "degrade_level": "L0",
       "confidence_score_case": 1.0,
-      "latency_ms": 156.84,
-      "request_id": "9658b422-18c",
-      "trace_id": "5de33a38-41b"
+      "latency_ms": 146.06,
+      "request_id": "1ba82432-359",
+      "trace_id": "6176ec77-fb1"
     },
     {
       "id": "c02_shanghai_food",
@@ -149,9 +149,9 @@
       "routing_mode_case": "real",
       "degrade_level": "L2",
       "confidence_score_case": 0.863,
-      "latency_ms": 140.31,
-      "request_id": "95617d7a-7ac",
-      "trace_id": "7f86fbf9-0f9"
+      "latency_ms": 132.47,
+      "request_id": "faa5b6e7-45b",
+      "trace_id": "18de8b37-8c8"
     },
     {
       "id": "c03_chengdu_relaxed",
@@ -168,9 +168,9 @@
       "routing_mode_case": "fixture",
       "degrade_level": "L2",
       "confidence_score_case": 0.7,
-      "latency_ms": 174.71,
-      "request_id": "6aac114e-6b8",
-      "trace_id": "d591074b-593"
+      "latency_ms": 140.01,
+      "request_id": "34dbe2c4-c09",
+      "trace_id": "e21363af-e05"
     },
     {
       "id": "c04_hangzhou_public",
@@ -187,9 +187,9 @@
       "routing_mode_case": "fixture",
       "degrade_level": "L2",
       "confidence_score_case": 0.7,
-      "latency_ms": 130.56,
-      "request_id": "cd04265d-0bc",
-      "trace_id": "b27c2681-729"
+      "latency_ms": 156.12,
+      "request_id": "c79fbdf5-151",
+      "trace_id": "80bfe35b-1e8"
     },
     {
       "id": "c05_shanghai_quality_guard",
@@ -206,9 +206,9 @@
       "routing_mode_case": "fixture",
       "degrade_level": "L2",
       "confidence_score_case": 0.7,
-      "latency_ms": 136.64,
-      "request_id": "3e0e9bed-2fc",
-      "trace_id": "39ea3877-a4a"
+      "latency_ms": 147.98,
+      "request_id": "e6f68c43-53f",
+      "trace_id": "ed60f778-f2f"
     },
     {
       "id": "c06_missing_requirements",
@@ -225,9 +225,9 @@
       "routing_mode_case": "fixture",
       "degrade_level": "L3",
       "confidence_score_case": 0.231,
-      "latency_ms": 95.24,
-      "request_id": "c8cf6091-053",
-      "trace_id": "e7335daa-e72"
+      "latency_ms": 83.49,
+      "request_id": "9414ee9a-3fb",
+      "trace_id": "8ca2cef7-dae"
     }
   ]
 }

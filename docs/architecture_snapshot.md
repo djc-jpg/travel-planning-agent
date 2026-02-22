@@ -60,8 +60,10 @@ CLI/API
   - plans
   - artifacts
 - Read APIs:
+  - `GET /sessions`
   - `GET /sessions/{session_id}/history`
   - `GET /plans/{request_id}/export`
+  - `GET /plans/{request_id}/export?format=markdown`
 
 ## 8. Observability
 
@@ -96,4 +98,3 @@ Rules:
 - no service -> api reverse dependency
 - no router business logic
 - cross-layer payloads via explicit schemas, avoid free-form dict passing.
-

@@ -379,3 +379,14 @@ def test_export_endpoint_rejects_unknown_format(monkeypatch):
         headers={"Authorization": "Bearer api_token"},
     )
     assert resp.status_code == 400
+
+
+def test_export_openapi_declares_markdown_variant():
+    resp = client.get("/openapi.json")
+    assert resp.status_code == 200
+
+    path_item = resp.json()["paths"]["/plans/{request_id}/export"]["get"]
+    content = path_item["responses"]["200"]["content"]
+    assert "application/json" in content
+    assert "text/markdown" in content
+    assert content["text/markdown"]["schema"]["type"] == "string"

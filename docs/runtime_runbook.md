@@ -35,10 +35,14 @@ If these fields are missing, treat as trust defect.
 
 ## 4. History and Export APIs
 
+- `GET /sessions?limit=20`
+  - returns recent session summaries.
 - `GET /sessions/{session_id}/history?limit=20`
   - returns plan history list for one session.
 - `GET /plans/{request_id}/export`
   - returns persisted request + plan + artifacts for export/reuse.
+- `GET /plans/{request_id}/export?format=markdown`
+  - returns Markdown export for direct copy/download.
 
 ## 5. Common Failure Patterns
 

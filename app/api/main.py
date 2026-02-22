@@ -275,7 +275,18 @@ def session_history(session_id: str, request: Request, limit: int = 20):
     )
 
 
-@app.get("/plans/{request_id}/export", response_model=PlanExportResponse)
+@app.get(
+    "/plans/{request_id}/export",
+    response_model=PlanExportResponse,
+    responses={
+        200: {
+            "description": "Plan export payload. Use format=json (default) or format=markdown.",
+            "content": {"text/markdown": {"schema": {"type": "string"}}},
+        },
+        400: {"description": "Unsupported export format"},
+        404: {"description": "Plan export not found"},
+    },
+)
 def export_plan(request_id: str, request: Request, format: str = "json"):
     _check_api_access(request)
 

@@ -45,8 +45,12 @@ Open `http://localhost:3000`.
 - `POST /chat`
 - `GET /health`
 - `GET /diagnostics`
+- `GET /sessions?limit=20`
 - `GET /sessions/{session_id}/history`
 - `GET /plans/{request_id}/export`
+- `GET /plans/{request_id}/export?format=markdown`
+
+All requests are sent via the frontend server proxy route: `/api/backend/...`.
 
 ## Docker
 
