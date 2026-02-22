@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import os
 
+from app.adapters.fault_injection import wrap_tool_with_fault_injection
 from app.adapters.budget import mock as mock_budget
 from app.adapters.calendar import mock as mock_calendar
 from app.adapters.poi import mock as mock_poi
@@ -52,7 +53,7 @@ def get_poi_tool():
         try:
             from app.adapters.poi import real as real_poi
 
-            return real_poi
+            return wrap_tool_with_fault_injection("poi", real_poi)
         except Exception as exc:
             if _strict_external_enabled():
                 raise ToolError("poi", f"Failed to load amap adapter: {redact_sensitive(str(exc))}") from None
@@ -60,7 +61,7 @@ def get_poi_tool():
                 "Failed to load amap poi adapter, fallback to mock: %s",
                 redact_sensitive(str(exc)),
             )
-    return mock_poi
+    return wrap_tool_with_fault_injection("poi", mock_poi)
 
 
 def get_route_tool():
@@ -70,7 +71,7 @@ def get_route_tool():
         try:
             from app.adapters.route import real as real_route
 
-            return real_route
+            return wrap_tool_with_fault_injection("route", real_route)
         except Exception as exc:
             if _strict_external_enabled():
                 raise ToolError("route", f"Failed to load amap adapter: {redact_sensitive(str(exc))}") from None
@@ -78,12 +79,12 @@ def get_route_tool():
                 "Failed to load amap route adapter, fallback to mock: %s",
                 redact_sensitive(str(exc)),
             )
-    return mock_route
+    return wrap_tool_with_fault_injection("route", mock_route)
 
 
 def get_budget_tool():
     _ensure_tool_allowed("budget")
-    return mock_budget
+    return wrap_tool_with_fault_injection("budget", mock_budget)
 
 
 def get_weather_tool():
@@ -93,7 +94,7 @@ def get_weather_tool():
         try:
             from app.adapters.weather import real as real_weather
 
-            return real_weather
+            return wrap_tool_with_fault_injection("weather", real_weather)
         except Exception as exc:
             if _strict_external_enabled():
                 raise ToolError("weather", f"Failed to load amap adapter: {redact_sensitive(str(exc))}") from None
@@ -101,12 +102,12 @@ def get_weather_tool():
                 "Failed to load amap weather adapter, fallback to mock: %s",
                 redact_sensitive(str(exc)),
             )
-    return mock_weather
+    return wrap_tool_with_fault_injection("weather", mock_weather)
 
 
 def get_calendar_tool():
     _ensure_tool_allowed("calendar")
-    return mock_calendar
+    return wrap_tool_with_fault_injection("calendar", mock_calendar)
 
 
 def _resolve_llm_provider_name() -> str:

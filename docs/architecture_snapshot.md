@@ -69,7 +69,9 @@ CLI/API
 
 - Health: `GET /health`
 - Metrics snapshot: `GET /metrics`
+- Prometheus metrics: `GET /metrics/prometheus`
 - Diagnostics (token protected): `GET /diagnostics`
+- Trace headers: `traceparent` input + `Traceparent`/`X-Trace-ID` output
 - Structured events:
   - tool latency/ok/error/returned_count
   - planner node start/end

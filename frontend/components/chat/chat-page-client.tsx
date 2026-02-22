@@ -353,6 +353,7 @@ export function ChatPageClient() {
                 <button
                   key={prompt}
                   type="button"
+                  data-testid={`chat-quick-${prompt.length}`}
                   className="rounded-full border px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
                   onClick={() => sendMessage(prompt)}
                 >
@@ -394,11 +395,12 @@ export function ChatPageClient() {
 
             <form className="flex gap-2" onSubmit={handleSend}>
               <Input
+                data-testid="chat-input"
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 placeholder="例如：第二天改成亲子路线，晚上安排夜景和美食"
               />
-              <Button type="submit" disabled={chatMutation.isPending}>
+              <Button data-testid="chat-send-btn" type="submit" disabled={chatMutation.isPending}>
                 <Send className="mr-2 h-4 w-4" />
                 发送
               </Button>
@@ -572,7 +574,9 @@ export function ChatPageClient() {
 
             <Separator />
             {latestItinerary ? (
-              <ItineraryRenderer itinerary={latestItinerary} compact />
+              <div data-testid="chat-itinerary-renderer">
+                <ItineraryRenderer itinerary={latestItinerary} compact />
+              </div>
             ) : (
               <p className="text-sm text-muted-foreground">当前会话暂无可预览 itinerary。</p>
             )}

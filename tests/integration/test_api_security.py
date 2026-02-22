@@ -54,6 +54,26 @@ def test_metrics_endpoint_available_without_diagnostics_token(monkeypatch):
     assert "tool_calls" in body
 
 
+def test_prometheus_metrics_endpoint_exposes_text_payload(monkeypatch):
+    monkeypatch.delenv("ENABLE_DIAGNOSTICS", raising=False)
+    monkeypatch.delenv("DIAGNOSTICS_TOKEN", raising=False)
+
+    resp = client.get("/metrics/prometheus")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("text/plain")
+    assert "trip_agent_requests_total" in resp.text
+    assert "trip_agent_success_rate" in resp.text
+
+
+def test_response_contains_trace_headers():
+    resp = client.get("/health")
+    assert resp.status_code == 200
+    assert resp.headers.get("x-trace-id")
+    traceparent = resp.headers.get("traceparent", "")
+    assert traceparent.startswith("00-")
+    assert len(traceparent.split("-")) == 4
+
+
 def test_plan_empty_message_validation():
     resp = client.post("/plan", json={"message": ""})
     assert resp.status_code == 422

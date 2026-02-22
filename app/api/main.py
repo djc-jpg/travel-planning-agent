@@ -30,6 +30,12 @@ from app.infrastructure.rate_limiter import get_rate_limiter
 from app.services.history_service import get_plan_export, list_session_history, list_sessions
 from app.services.export_formatter import render_plan_markdown
 from app.services.plan_service import execute_plan
+from app.observability.prometheus_export import render_prometheus_metrics
+from app.observability.tracing import (
+    begin_request_trace,
+    build_traceparent_header,
+    end_request_trace,
+)
 
 _api_logger = logging.getLogger("trip-agent.api")
 
@@ -59,23 +65,28 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         start = time.perf_counter()
-        request_id = request.headers.get("x-request-id", str(uuid.uuid4())[:12])
+        trace_ctx, trace_token = begin_request_trace(request.headers.get("traceparent"))
+        request_id = request.headers.get("x-request-id", trace_ctx.trace_id[:12] or str(uuid.uuid4())[:12])
         status_code = 500
         try:
             response = await call_next(request)
             status_code = response.status_code
             response.headers["X-Request-ID"] = request_id
+            response.headers["X-Trace-ID"] = trace_ctx.trace_id
+            response.headers["Traceparent"] = build_traceparent_header(trace_ctx)
             return response
         finally:
             duration_ms = round((time.perf_counter() - start) * 1000, 1)
             _api_logger.info(
-                "request_id=%s method=%s path=%s status=%s duration_ms=%s",
+                "request_id=%s trace_id=%s method=%s path=%s status=%s duration_ms=%s",
                 request_id,
+                trace_ctx.trace_id,
                 request.method,
                 request.url.path,
                 status_code,
                 duration_ms,
             )
+            end_request_trace(trace_token)
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
@@ -225,6 +236,14 @@ def metrics():
     return get_plan_metrics().snapshot()
 
 
+@app.get("/metrics/prometheus")
+def metrics_prometheus():
+    from app.observability.plan_metrics import get_plan_metrics
+
+    payload = render_prometheus_metrics(get_plan_metrics().snapshot())
+    return PlainTextResponse(payload, media_type="text/plain; version=0.0.4; charset=utf-8")
+
+
 @app.get("/diagnostics")
 def diagnostics(request: Request):
     _check_diagnostics_access(request)
@@ -249,6 +268,7 @@ def diagnostics(request: Request):
         "runtime_flags": {
             "engine_version": _app_ctx.engine_version,
             "strict_required_fields": _app_ctx.strict_required_fields,
+            "tracing_enabled": _is_enabled("ENABLE_TRACING", default=True),
         },
         "plan_metrics": get_plan_metrics().snapshot(),
     }

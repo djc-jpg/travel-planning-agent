@@ -1,0 +1,10 @@
+﻿{
+    "generated_at":  "2026-02-22T18:53:03",
+    "backend_ready":  true,
+    "health_status":  200,
+    "trace_headers_ok":  true,
+    "metrics_fields_ok":  true,
+    "prometheus_export_ok":  true,
+    "x_trace_id":  "a84a0f341210b16030fdaf41b7948970",
+    "traceparent":  "00-a84a0f341210b16030fdaf41b7948970-e8fff06d1c898f4a-01"
+}

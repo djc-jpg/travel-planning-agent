@@ -813,8 +813,11 @@ def run_release_gate(
     eval_result = _evaluate_cases(cases)
     metrics = dict(eval_result["metrics"])
 
-    conc = _concurrency_50(make_app_context(), requests=50)
+    concurrency_requests = max(1, int(os.getenv("RELEASE_GATE_CONCURRENCY_REQUESTS", "50")))
+    conc = _concurrency_50(make_app_context(), requests=concurrency_requests)
     metrics["concurrency_isolation"] = round(float(conc["score"]), 4)
+    metrics["concurrency_requests"] = concurrency_requests
+    metrics["concurrency_success_rate"] = round(float(conc.get("success_rate", 0.0)), 4)
     # Enforce stress success-rate by folding it into plan_success_rate gate.
     metrics["plan_success_rate"] = round(
         min(float(metrics["plan_success_rate"]), float(conc["success_rate"])),

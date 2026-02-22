@@ -26,6 +26,8 @@ _TRACKED_GATE_METRICS = (
     "clarifying_correctness",
     "plan_success_rate",
     "concurrency_isolation",
+    "concurrency_success_rate",
+    "concurrency_requests",
     "p95_latency_ms",
 )
 

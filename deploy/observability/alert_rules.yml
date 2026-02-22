@@ -1,0 +1,34 @@
+groups:
+  - name: trip_agent_slo_alerts
+    rules:
+      - alert: TripAgentLowAvailability
+        expr: trip_agent_success_rate < 0.99
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "trip-agent availability below SLO"
+          description: "success_rate has been below 99% for 5 minutes."
+
+      - alert: TripAgentHighLatencyP95
+        expr: trip_agent_latency_p95_ms > 3000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "trip-agent p95 latency above SLO"
+          description: "p95 latency is above 3000ms for 10 minutes."
+
+      - alert: TripAgentHighToolErrorRate
+        expr: |
+          (
+            sum(trip_agent_tool_calls_total{status="error"})
+            /
+            clamp_min(sum(trip_agent_tool_calls_total), 1)
+          ) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "trip-agent tool error rate too high"
+          description: "Tool error ratio has exceeded 5% for 10 minutes."

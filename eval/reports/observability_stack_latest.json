@@ -1,0 +1,26 @@
+﻿{
+    "generated_at":  "2026-02-22T20:49:50",
+    "prometheus_ready":  true,
+    "prometheus_ready_text":  "Prometheus Server is Ready.",
+    "prometheus_target_count":  1,
+    "prometheus_targets":  [
+                               {
+                                   "job":  "trip-agent-backend",
+                                   "health":  "up",
+                                   "scrapeUrl":  "http://host.docker.internal:8000/metrics/prometheus",
+                                   "lastError":  "",
+                                   "lastScrape":  "2026-02-22T12:49:37.560962506Z"
+                               }
+                           ],
+    "backend_target_healthy":  true,
+    "alert_rule_count":  3,
+    "alert_rule_names":  [
+                             "TripAgentLowAvailability",
+                             "TripAgentHighLatencyP95",
+                             "TripAgentHighToolErrorRate"
+                         ],
+    "grafana_database":  "ok",
+    "grafana_version":  "11.2.0",
+    "grafana_commit":  "2a88694fd3ced0335bf3726cc5d0adc2d1858855",
+    "grafana_ok":  true
+}

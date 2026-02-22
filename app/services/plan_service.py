@@ -9,6 +9,8 @@ from typing import Any
 from app.application.context import AppContext
 from app.application.contracts import TripRequest, TripResult
 from app.application.plan_trip import plan_trip
+from app.infrastructure.logging import get_logger
+from app.observability.tracing import get_current_trace_id, trace_span
 from app.services.itinerary_presenter import present_itinerary
 
 _MACHINE_MESSAGE_HINTS = re.compile(
@@ -52,6 +54,8 @@ def execute_plan(
     metadata: Mapping[str, Any] | None = None,
     debug: bool = False,
 ) -> TripResult:
+    trace_id = get_current_trace_id()
+    logger = get_logger(trace_id=trace_id or None)
     trip_req = TripRequest(
         message=message,
         session_id=session_id,
@@ -59,7 +63,13 @@ def execute_plan(
         user_profile=_normalize_mapping(user_profile),
         metadata=_normalize_mapping(metadata),
     )
-    result = plan_trip(trip_req, ctx)
+    with trace_span(
+        "plan_service.execute_plan",
+        logger=logger,
+        has_session=bool(session_id),
+        debug=bool(debug),
+    ):
+        result = plan_trip(trip_req, ctx)
     presented = _with_presented_itinerary(result, debug=debug)
     return _normalize_user_message(presented)
 

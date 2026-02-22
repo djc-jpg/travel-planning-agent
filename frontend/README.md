@@ -39,6 +39,15 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+## E2E (Playwright)
+
+```bash
+npm run e2e:install
+npm run e2e
+```
+
+Key browser flows are under `frontend/e2e/key-flows.spec.ts`.
+
 ## Backend endpoints used
 
 - `POST /plan`

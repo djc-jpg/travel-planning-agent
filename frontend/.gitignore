@@ -4,6 +4,8 @@ out
 dist
 *.log
 *.tsbuildinfo
+playwright-report
+test-results
 .env.local
 .env.development.local
 .env.test.local

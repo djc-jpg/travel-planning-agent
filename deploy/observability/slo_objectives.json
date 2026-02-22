@@ -1,0 +1,66 @@
+{
+  "auto": {
+    "realtime_l0_ratio_min": 0.3,
+    "default_profile": "degraded"
+  },
+  "profiles": {
+    "realtime": [
+      {
+        "name": "availability_99",
+        "metric": "success_rate",
+        "op": ">=",
+        "target": 0.99
+      },
+      {
+        "name": "latency_p95_under_3s",
+        "metric": "p95_latency_ms",
+        "op": "<=",
+        "target": 3000
+      },
+      {
+        "name": "tool_error_rate_under_5pct",
+        "metric": "tool_error_rate",
+        "op": "<=",
+        "target": 0.05
+      },
+      {
+        "name": "l3_degrade_ratio_under_10pct",
+        "metric": "l3_ratio",
+        "op": "<=",
+        "target": 0.1
+      },
+      {
+        "name": "l0_ratio_at_least_30pct",
+        "metric": "l0_ratio",
+        "op": ">=",
+        "target": 0.3
+      }
+    ],
+    "degraded": [
+      {
+        "name": "availability_95",
+        "metric": "success_rate",
+        "op": ">=",
+        "target": 0.95
+      },
+      {
+        "name": "latency_p95_under_5s",
+        "metric": "p95_latency_ms",
+        "op": "<=",
+        "target": 5000
+      },
+      {
+        "name": "tool_error_rate_under_15pct",
+        "metric": "tool_error_rate",
+        "op": "<=",
+        "target": 0.15
+      },
+      {
+        "name": "l3_degrade_ratio_under_100pct",
+        "metric": "l3_ratio",
+        "op": "<=",
+        "target": 1.0
+      }
+    ]
+  }
+}

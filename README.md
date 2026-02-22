@@ -86,6 +86,10 @@ cp .env.example .env
 | `FOOD_MIN_PER_PERSON_PER_DAY` | 餐饮最低预算（默认 `60`） | 否 |
 | `DEFAULT_SPRING_FESTIVAL_DATE` | 春节场景默认起始日（默认 `2026-02-17`） | 否 |
 | `API_BASE_URL` | 前端服务端代理转发到后端的地址 | 否（默认 `http://localhost:8000`） |
+| `ENABLE_TRACING` | 开启轻量链路追踪（`traceparent` 透传 + span 日志） | 否（默认 `true`） |
+| `ENABLE_TOOL_FAULT_INJECTION` | 启用工具层故障注入（演练专用） | 否（默认 `false`） |
+| `TOOL_FAULT_INJECTION` | 注入规则（示例：`poi:timeout,route:rate_limit`） | 否 |
+| `TOOL_FAULT_RATE` | 故障注入比例（`0.0`~`1.0`） | 否（默认 `1.0`） |
 
 **优先级**：`DASHSCOPE_API_KEY` > `OPENAI_API_KEY` > `LLM_API_KEY`
 
@@ -125,6 +129,7 @@ uvicorn app.api.main:app --reload
 |------|------|------|
 | GET | `/health` | 健康检查 |
 | GET | `/metrics` | 运行指标快照 |
+| GET | `/metrics/prometheus` | Prometheus 文本指标导出 |
 | GET | `/diagnostics` | 诊断信息（需 `ENABLE_DIAGNOSTICS=true` + `DIAGNOSTICS_TOKEN`） |
 | POST | `/plan` | 一次性规划 `{"message": "..."}` |
 | POST | `/chat` | 多轮对话 `{"session_id": "xxx", "message": "..."}` |
@@ -385,3 +390,36 @@ python -m eval.release_gate_runner
 python -m tools.release_summary
 python -m tools.product_acceptance --full
 ```
+
+CI 门禁（`.github/workflows/ci.yml`）已包含：
+- 前端浏览器 E2E（Playwright 关键流程）
+- 外部依赖故障演练（`app.deploy.dependency_fault_drill`）
+- 持久化备份恢复演练（`app.persistence.drill`）
+- SLO 演练（`app.deploy.slo_drill --profile degraded`）
+
+### Product-grade drills
+
+```powershell
+# 500+ 并发真实 HTTP 压测 + 容量结论
+$env:RATE_LIMIT_MAX="100000"
+$env:RATE_LIMIT_WINDOW="60"
+.\scripts\loadtest-500.ps1 -Workers 4
+
+# 可观测栈（Prometheus + Grafana）
+.\scripts\observability-up.ps1
+.\scripts\slo-drill.ps1 -Profile degraded
+.\scripts\observability-down.ps1
+
+# 持久化治理（迁移 + 备份恢复演练）
+python -m app.persistence.migrate
+.\scripts\persistence-drill.ps1
+
+# 外部依赖故障演练（限流/超时/降级）
+.\scripts\dependency-fault-drill.ps1
+```
+
+相关说明文档：
+- `docs/loadtest_runbook.md`
+- `docs/observability_stack.md`
+- `docs/persistence_governance.md`
+- `docs/dependency_fault_drill.md`

@@ -239,6 +239,7 @@ export function HistoryPageClient() {
               {recentSessions.map((session) => (
                 <Button
                   key={session.session_id}
+                  data-testid={`history-recent-${session.session_id}`}
                   variant={sessionId === session.session_id ? "default" : "outline"}
                   onClick={() => handlePickSession(session)}
                   disabled={queryHistoryMutation.isPending}
@@ -251,12 +252,17 @@ export function HistoryPageClient() {
 
           <div className="flex flex-wrap items-center gap-2">
             <Input
+              data-testid="history-session-input"
               value={sessionId}
               onChange={(event) => setSessionId(event.target.value)}
               placeholder="Input session_id"
               className="max-w-md"
             />
-            <Button onClick={handleQueryRemote} disabled={queryHistoryMutation.isPending}>
+            <Button
+              data-testid="history-query-btn"
+              onClick={handleQueryRemote}
+              disabled={queryHistoryMutation.isPending}
+            >
               Query
             </Button>
           </div>
@@ -287,6 +293,7 @@ export function HistoryPageClient() {
                         {formatAssistantMessage(item.message, false) || "Result is available; load export for details."}
                       </p>
                       <Button
+                        data-testid={`history-load-export-${item.request_id}`}
                         variant={activeRequestId === item.request_id ? "default" : "secondary"}
                         onClick={() => exportMutation.mutate(item.request_id)}
                         disabled={exportMutation.isPending}
@@ -303,7 +310,7 @@ export function HistoryPageClient() {
       </Card>
 
       {selectedExport ? (
-        <Card>
+        <Card data-testid="history-export-details">
           <CardHeader>
             <CardTitle>Export Details</CardTitle>
             <CardDescription>

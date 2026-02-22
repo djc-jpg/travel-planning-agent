@@ -6,6 +6,7 @@ from app.persistence.repository import (
     PlanPersistenceRepository,
     get_plan_persistence,
 )
+from app.persistence.migration_runner import apply_sqlite_migrations
 from app.persistence.sqlite_repository import SQLitePlanPersistenceRepository
 
 __all__ = [
@@ -16,6 +17,6 @@ __all__ = [
     "RequestRecord",
     "SQLitePlanPersistenceRepository",
     "SessionRecord",
+    "apply_sqlite_migrations",
     "get_plan_persistence",
 ]
-

@@ -80,3 +80,4 @@ secrets.*
 data/*.sqlite3
 data/*.sqlite
 data/*.db
+data/backups/

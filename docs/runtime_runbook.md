@@ -27,11 +27,16 @@ If these fields are missing, treat as trust defect.
 
 - `GET /health`: liveness check
 - `GET /metrics`: request/tool counters and latency
+- `GET /metrics/prometheus`: Prometheus scrape endpoint
 - `GET /diagnostics` (bearer token required):
   - tool backend state
   - cache stats
   - runtime flags
   - plan metrics snapshot
+
+Tracing headers:
+- request in: `traceparent` (optional)
+- response out: `Traceparent`, `X-Trace-ID`
 
 ## 4. History and Export APIs
 

@@ -351,11 +351,21 @@ export function PlanPageClient() {
             onSubmit={form.handleSubmit((values) => planMutation.mutate(values))}
           >
             <Field label="出发城市" error={form.formState.errors.city?.message}>
-              <Input placeholder="例如：北京、上海、成都" {...form.register("city")} />
+              <Input
+                data-testid="plan-city-input"
+                placeholder="例如：北京、上海、成都"
+                {...form.register("city")}
+              />
             </Field>
 
             <Field label="旅行天数" error={form.formState.errors.days?.message}>
-              <Input type="number" min={1} max={14} {...form.register("days", { valueAsNumber: true })} />
+              <Input
+                data-testid="plan-days-input"
+                type="number"
+                min={1}
+                max={14}
+                {...form.register("days", { valueAsNumber: true })}
+              />
             </Field>
 
             <div className="space-y-1.5">
@@ -447,7 +457,7 @@ export function PlanPageClient() {
             </div>
 
             <div className="md:col-span-2 flex flex-wrap items-center gap-3">
-              <Button type="submit" disabled={planMutation.isPending}>
+              <Button data-testid="plan-submit-btn" type="submit" disabled={planMutation.isPending}>
                 {planMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -489,7 +499,7 @@ export function PlanPageClient() {
         </Card>
       ) : null}
 
-      {displayedMessage ? <Alert>{displayedMessage}</Alert> : null}
+      {displayedMessage ? <Alert data-testid="plan-result-alert">{displayedMessage}</Alert> : null}
       {requestSummary && (planMutation.isPending || latestItinerary) ? <Alert>{requestSummary}</Alert> : null}
       {dateMismatchWarning ? <Alert variant="destructive">{dateMismatchWarning}</Alert> : null}
 
@@ -518,10 +528,12 @@ export function PlanPageClient() {
               </Button>
             </CardContent>
           </Card>
-          <ItineraryRenderer
-            itinerary={latestItinerary}
-            requestedBudgetPerDay={requestSnapshot?.budget_per_day}
-          />
+          <div data-testid="plan-itinerary-renderer">
+            <ItineraryRenderer
+              itinerary={latestItinerary}
+              requestedBudgetPerDay={requestSnapshot?.budget_per_day}
+            />
+          </div>
         </div>
       ) : null}
     </main>

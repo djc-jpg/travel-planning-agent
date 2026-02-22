@@ -40,3 +40,37 @@ python -m tools.product_acceptance --full
   - 不出现停车场/上车点等基础设施 POI
   - 预算总览与单点门票文案一致（非一律 0 元）
   - `run_fingerprint` 能解释当前模式（`REALTIME` 或 `DEGRADED`）
+
+## 5) 产品级扩展验收（容量/观测/持久化/故障演练）
+- 500+ 并发压测：
+```powershell
+$env:RATE_LIMIT_MAX="100000"
+$env:RATE_LIMIT_WINDOW="60"
+.\scripts\loadtest-500.ps1 -Workers 4
+```
+- SLO 校验：
+```powershell
+.\scripts\slo-drill.ps1 -Profile degraded
+```
+- 持久化备份恢复演练：
+```powershell
+.\scripts\persistence-drill.ps1
+```
+- 外部依赖故障演练：
+```powershell
+.\scripts\dependency-fault-drill.ps1
+```
+
+### 5.1 通过标准
+- 压测报告 `capacity_conclusion.meets_target=true`
+- `dependency_fault_drill_latest.json` 中 `passed=true`
+- `persistence_drill_latest.json` 中 `passed=true`
+- 关键前端 E2E 全通过（`npm run e2e`）
+
+### 5.2 当前状态（2026-02-22）
+- 故障演练：已通过（`eval/reports/dependency_fault_drill_latest.json`）
+- 持久化演练：已通过（`eval/reports/persistence_drill_latest.json`）
+- 前端 E2E：已通过（3/3）
+- 500 并发容量目标：已通过（`eval/reports/loadtest_20260222_071446.json`，`success_rate=1.0`, `p95=1986.35ms`）
+- SLO 校验：降级档已通过（`eval/reports/slo_latest.json`）；实时档需在真实外部依赖流量环境复核
+- 观测栈连通性：已通过（`eval/reports/observability_stack_latest.json`）

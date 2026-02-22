@@ -1,0 +1,2 @@
+"""SQLite migration SQL files."""
+
