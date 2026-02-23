@@ -47,3 +47,10 @@ python -m tools.loadtest_http `
 - 场景：500 并发、500 请求、4 workers、轻量请求体
 - 结果：`success_rate=1.0`、`p95_latency_ms=1986.35`、`throughput_rps=132.61`
 - 结论：在 `99%` 成功率 / `p95<=3000ms` 目标下通过（`meets_target=true`）
+
+## Latest Run (2026-02-23)
+
+- report: `eval/reports/loadtest_20260222_174222.json`
+- scenario: 500 concurrency, 1000 requests, 4 workers, scripted env isolation (`STRICT_REQUIRED_FIELDS=true`, high rate-limit window)
+- result: `success_rate=1.0`, `p95_latency_ms=1722.40`, `throughput_rps=224.73`
+- verdict: `capacity_conclusion.meets_target=true`

@@ -1,0 +1,60 @@
+{
+  "generated_at": "2026-02-22T18:12:31Z",
+  "overall_passed": true,
+  "checks": [
+    {
+      "name": "full_acceptance",
+      "passed": true,
+      "detail": "full_passed=True",
+      "report": "eval\\reports\\product_acceptance_latest.json"
+    },
+    {
+      "name": "frontend_e2e",
+      "passed": true,
+      "detail": "expected=3, unexpected=0",
+      "report": "eval\\reports\\frontend_e2e_latest.json"
+    },
+    {
+      "name": "capacity_500_concurrency",
+      "passed": true,
+      "detail": "success_rate=1.0000, p95_latency_ms=1722.40",
+      "report": "eval\\reports\\loadtest_20260222_174222.json"
+    },
+    {
+      "name": "slo_degraded",
+      "passed": true,
+      "detail": "success_rate=1.0000, p95_latency_ms=3680.47",
+      "report": "eval\\reports\\slo_latest.json"
+    },
+    {
+      "name": "slo_realtime",
+      "passed": true,
+      "detail": "success_rate=1.0000, p95_latency_ms=2567.70",
+      "report": "eval\\reports\\slo_realtime_latest.json"
+    },
+    {
+      "name": "dependency_fault_drill",
+      "passed": true,
+      "detail": "passed=True",
+      "report": "eval\\reports\\dependency_fault_drill_latest.json"
+    },
+    {
+      "name": "persistence_drill",
+      "passed": true,
+      "detail": "passed=True",
+      "report": "eval\\reports\\persistence_drill_latest.json"
+    },
+    {
+      "name": "observability_stack",
+      "passed": true,
+      "detail": "prometheus_ready=True, backend_target_healthy=True, grafana_ok=True, alert_rule_count=3",
+      "report": "eval\\reports\\observability_stack_latest.json"
+    },
+    {
+      "name": "remote_ci_green",
+      "passed": true,
+      "detail": "latest_run_id=22279367015, latest_run_conclusion=success",
+      "report": "eval\\reports\\ci_remote_latest.json"
+    }
+  ]
+}

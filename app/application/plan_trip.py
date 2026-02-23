@@ -216,6 +216,7 @@ def _ensure_fact_field_aliases(itinerary: dict[str, Any]) -> None:
                         "metadata_source": metadata_source,
                         "routing_source": routing_source,
                         "has_fact_sources": has_fact_sources,
+                        "field_name": field_name,
                     },
                 )
                 source_type = str(classified.get("source_type", "unknown"))
@@ -266,6 +267,7 @@ def _compute_unknown_fields(itinerary: dict[str, Any]) -> tuple[list[str], float
                         "metadata_source": metadata_source,
                         "routing_source": routing_source,
                         "has_fact_sources": has_fact_sources,
+                        "field_name": field_name,
                     },
                 )
                 source_type = str(classified.get("source_type", "unknown")).strip().lower()

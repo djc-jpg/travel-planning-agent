@@ -13,5 +13,6 @@ python -m app.deploy.slo_drill `
   --port $Port `
   --requests $Requests `
   --profile realtime `
+  --routing-provider real `
   --env-file $EnvFile `
   --output "eval/reports/slo_realtime_latest.json"

@@ -71,5 +71,18 @@ def test_compute_verified_fact_ratio_counts_only_verified_and_curated():
         ]
     }
 
-    assert compute_verified_fact_ratio(itinerary) == 0.5
+    # Missing closed_rules from curated source is treated as "no explicit closure rule".
+    assert compute_verified_fact_ratio(itinerary) == 0.625
 
+
+def test_classify_field_allows_missing_closed_rules_from_curated_source():
+    result = classify_field(
+        "",
+        {
+            "source_type": "data",
+            "has_fact_sources": True,
+            "field_name": "closed_rules",
+        },
+    )
+    assert result["source_type"] == "curated"
+    assert result["field_confidence"] > 0.0

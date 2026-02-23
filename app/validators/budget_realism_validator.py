@@ -10,13 +10,27 @@ def validate_budget_realism(
     constraints: TripConstraints,
 ) -> list[ValidationIssue]:
     issues: list[ValidationIssue] = []
-    if itinerary.city == "北京" and itinerary.total_cost < 400:
+    budget_limit = 0.0
+    if constraints.total_budget:
+        budget_limit = float(constraints.total_budget)
+    elif constraints.budget_per_day:
+        budget_limit = float(constraints.budget_per_day) * float(max(constraints.days, 1))
+
+    minimum_feasible = float(itinerary.minimum_feasible_budget or itinerary.total_cost or 0.0)
+    if budget_limit > 0 and minimum_feasible > 0 and budget_limit + 1e-6 < minimum_feasible:
+        gap = minimum_feasible - budget_limit
         issues.append(
             ValidationIssue(
                 code="BUDGET_UNREALISTIC",
                 severity=Severity.MEDIUM,
-                message=f"预算明显偏低: {itinerary.total_cost:.0f} 元",
-                suggestions=["增加餐饮与交通最低成本", "使用真实门票估算"],
+                message=(
+                    f"budget {budget_limit:.0f} is below minimum feasible "
+                    f"{minimum_feasible:.0f} (gap {gap:.0f})"
+                ),
+                suggestions=[
+                    "increase budget",
+                    "reduce paid attractions or cross-district transport",
+                ],
             )
         )
 

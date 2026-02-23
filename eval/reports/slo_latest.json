@@ -2,7 +2,7 @@
   "passed": true,
   "metrics": {
     "success_rate": 1.0,
-    "p95_latency_ms": 2819.33,
+    "p95_latency_ms": 3680.47,
     "l0_ratio": 0.0,
     "l3_ratio": 0.0,
     "tool_error_rate": 0.0
@@ -19,7 +19,7 @@
     {
       "name": "latency_p95_under_5s",
       "metric": "p95_latency_ms",
-      "actual": 2819.33,
+      "actual": 3680.47,
       "target": 5000.0,
       "op": "<=",
       "passed": true
@@ -44,10 +44,44 @@
   "failed": [],
   "profile": "degraded",
   "objectives_file": "deploy\\observability\\slo_objectives.json",
-  "generated_at": "2026-02-22T20:59:37",
+  "generated_at": "2026-02-23T01:58:44",
   "request_count": 20,
+  "warmup_request_count": 0,
   "status_counts": {
     "200": 20
   },
-  "elapsed_ms": 106439.33
+  "run_mode_counts": {
+    "DEGRADED": 20
+  },
+  "degrade_level_counts": {
+    "L1": 20
+  },
+  "fingerprints": [
+    {
+      "run_mode": "DEGRADED",
+      "poi_provider": "amap",
+      "route_provider": "fixture",
+      "llm_provider": "dashscope",
+      "strict_external_data": false
+    },
+    {
+      "run_mode": "DEGRADED",
+      "poi_provider": "amap",
+      "route_provider": "fixture",
+      "llm_provider": "dashscope",
+      "strict_external_data": false
+    },
+    {
+      "run_mode": "DEGRADED",
+      "poi_provider": "amap",
+      "route_provider": "fixture",
+      "llm_provider": "dashscope",
+      "strict_external_data": false
+    }
+  ],
+  "strict_external_data": false,
+  "routing_provider": "fixture",
+  "env_file": ".env.prerelease",
+  "elapsed_ms": 89546.21,
+  "steady_state_p95_latency_ms": 3680.47
 }

@@ -75,3 +75,15 @@ $env:RATE_LIMIT_WINDOW="60"
 - SLO 校验：降级档已通过（`eval/reports/slo_latest.json`）；实时档需在真实外部依赖流量环境复核
 - 观测栈连通性：已通过（`eval/reports/observability_stack_latest.json`）
 - realtime SLO 复核：已完成（`eval/reports/slo_realtime_latest.json`），当前未达标（`p95=7785.01ms`, `l3_ratio=0.35`, `l0_ratio=0.0`）
+
+## Latest Validation Snapshot (2026-02-23)
+
+- `eval/reports/product_acceptance_latest.json`: `full_passed=true`
+- `eval/reports/loadtest_20260222_174222.json`: `capacity_conclusion.meets_target=true`, `success_rate=1.0`, `p95_latency_ms=1722.40`
+- `eval/reports/slo_latest.json`: `passed=true` (degraded profile)
+- `eval/reports/slo_realtime_latest.json`: `passed=true`, `l0_ratio=0.65`, `l3_ratio=0.0`
+- `eval/reports/dependency_fault_drill_latest.json`: `passed=true`
+- `eval/reports/persistence_drill_latest.json`: `passed=true`
+- `eval/reports/frontend_e2e_latest.json`: `expected=3`, `unexpected=0`
+- `eval/reports/ci_remote_latest.json`: `latest_all_green=true`
+- `eval/reports/product_readiness_latest.json`: `overall_passed=true`

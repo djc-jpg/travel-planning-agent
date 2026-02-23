@@ -13,6 +13,12 @@ $env:STRICT_REQUIRED_FIELDS = "true"
 $env:ALLOW_UNAUTHENTICATED_API = "true"
 $env:STRICT_EXTERNAL_DATA = "false"
 $env:ROUTING_PROVIDER = "fixture"
+$env:INTAKE_LLM_ENABLED = "false"
+$env:RATE_LIMIT_MAX = "100000"
+$env:RATE_LIMIT_WINDOW = "60"
+$env:DASHSCOPE_API_KEY = ""
+$env:OPENAI_API_KEY = ""
+$env:LLM_API_KEY = ""
 
 # PowerShell native command passing strips JSON quotes unless doubled.
 $payload = '{""message"":""Plan a short trip""}'

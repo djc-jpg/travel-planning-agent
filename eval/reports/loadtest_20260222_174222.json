@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-02-22T17:42:22Z",
+  "base_url": "http://127.0.0.1:18195",
+  "endpoint": "/plan",
+  "concurrency": 500,
+  "total_requests": 1000,
+  "warmup_requests": 30,
+  "success_count": 1000,
+  "error_count": 0,
+  "success_rate": 1.0,
+  "elapsed_seconds": 4.45,
+  "throughput_rps": 224.73,
+  "avg_latency_ms": 1313.99,
+  "p50_latency_ms": 1240.77,
+  "p95_latency_ms": 1722.4,
+  "p99_latency_ms": 1789.79,
+  "max_latency_ms": 1801.31,
+  "status_counts": {
+    "200": 1000
+  },
+  "error_counts": {},
+  "capacity_conclusion": {
+    "meets_target": true,
+    "target_concurrency": 500,
+    "target_success_rate": 0.99,
+    "target_p95_ms": 3000.0,
+    "summary": "PASS: supports >= 500 concurrency (success_rate=1.0000, p95=1722.40ms).",
+    "reasons": []
+  },
+  "spawn_app": true,
+  "spawn_workers": 4
+}

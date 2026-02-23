@@ -1,9 +1,10 @@
-"""Run a deterministic local SLO drill with synthetic traffic."""
+﻿"""Run a deterministic local SLO drill with synthetic traffic."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import signal
 import subprocess
@@ -25,24 +26,51 @@ _DEFAULT_TIMEOUT_SECONDS = 30.0
 _DEFAULT_OBJECTIVES = Path("deploy") / "observability" / "slo_objectives.json"
 _DEFAULT_OUTPUT = Path("eval") / "reports" / "slo_latest.json"
 _DEFAULT_ENV_FILE = ".env.prerelease"
+_DEFAULT_REALTIME_WARMUP_REQUESTS = 3
+
 _REALTIME_PAYLOADS = [
     {
-        "message": "北京1天轻松游，历史文化为主，预算适中",
-        "constraints": {"city": "北京", "days": 1, "date_start": "2026-04-01", "date_end": "2026-04-01"},
+        "message": "\u5317\u4eac1\u5929\u8f7b\u677e\u6e38\uff0c\u5386\u53f2\u6587\u5316\u4e3a\u4e3b\uff0c\u9884\u7b97\u9002\u4e2d",
+        "constraints": {
+            "city": "\u5317\u4eac",
+            "days": 1,
+            "date_start": "2026-04-01",
+            "date_end": "2026-04-01",
+            "budget_per_day": 1200,
+            "pace": "relaxed",
+            "transport_mode": "driving",
+        },
     },
     {
-        "message": "杭州1天休闲游，喜欢园林和美食",
-        "constraints": {"city": "杭州", "days": 1, "date_start": "2026-04-01", "date_end": "2026-04-01"},
+        "message": "\u676d\u5dde1\u5929\u4f11\u95f2\u6e38\uff0c\u559c\u6b22\u56ed\u6797\u548c\u7f8e\u98df",
+        "constraints": {
+            "city": "\u676d\u5dde",
+            "days": 1,
+            "date_start": "2026-04-01",
+            "date_end": "2026-04-01",
+            "budget_per_day": 1200,
+            "pace": "relaxed",
+            "transport_mode": "driving",
+        },
     },
     {
-        "message": "上海1天城市漫步，地标与夜景",
-        "constraints": {"city": "上海", "days": 1, "date_start": "2026-04-01", "date_end": "2026-04-01"},
+        "message": "\u4e0a\u6d771\u5929\u57ce\u5e02\u6f2b\u6b65\uff0c\u5730\u6807\u4e0e\u591c\u666f",
+        "constraints": {
+            "city": "\u4e0a\u6d77",
+            "days": 1,
+            "date_start": "2026-04-01",
+            "date_end": "2026-04-01",
+            "budget_per_day": 1200,
+            "pace": "relaxed",
+            "transport_mode": "driving",
+        },
     },
 ]
+
 _DEGRADED_PAYLOAD = {
-    "message": "北京2天旅行，2026-04-01到2026-04-02",
+    "message": "\u5317\u4eac2\u5929\u65c5\u884c\uff0c2026-04-01\u52302026-04-02",
     "constraints": {
-        "city": "北京",
+        "city": "\u5317\u4eac",
         "days": 2,
         "date_start": "2026-04-01",
         "date_end": "2026-04-02",
@@ -62,6 +90,7 @@ class SLODrillConfig:
     use_env_file: bool
     strict_external_data: bool
     routing_provider: str
+    warmup_requests: int
     output_file: Path
 
 
@@ -180,20 +209,64 @@ def _fetch_metrics(base_url: str) -> dict[str, Any]:
     return payload
 
 
+def _calc_p95(values: list[float]) -> float:
+    if not values:
+        return 0.0
+    rows = sorted(max(0.0, float(value)) for value in values)
+    idx = max(0, min(len(rows) - 1, math.ceil(len(rows) * 0.95) - 1))
+    return rows[idx]
+
+
+def _build_eval_snapshot(
+    *,
+    statuses: list[int],
+    result_statuses: list[str],
+    latencies_ms: list[float],
+    degrade_level_counts: dict[str, int],
+    tool_calls: dict[str, Any],
+) -> dict[str, Any]:
+    total = max(1, len(statuses))
+    success_count = 0
+    for code, status in zip(statuses, result_statuses, strict=False):
+        normalized_status = str(status or "").strip().lower()
+        if code < 500 and normalized_status not in {"error"}:
+            success_count += 1
+    return {
+        "total_requests": total,
+        "success_rate": success_count / total,
+        "p95_latency_ms": round(_calc_p95(latencies_ms), 2),
+        "degrade_counts": dict(degrade_level_counts),
+        "tool_calls": tool_calls,
+    }
+
+
 def run_slo_drill(config: SLODrillConfig) -> dict[str, Any]:
     base_url = f"http://{config.host}:{config.port}"
     process = _spawn_app(config)
     started = time.perf_counter()
     statuses: list[int] = []
+    result_statuses: list[str] = []
+    measured_latencies_ms: list[float] = []
     run_mode_counts: dict[str, int] = {}
     degrade_level_counts: dict[str, int] = {}
     fingerprints: list[dict[str, Any]] = []
     try:
         _wait_for_health(base_url, timeout_seconds=config.timeout_seconds)
+        for warmup_index in range(max(0, config.warmup_requests)):
+            warmup_payload = _next_payload(config.profile, warmup_index)
+            _post_plan(base_url, payload=warmup_payload)
+
         for index in range(max(1, config.request_count)):
             payload = _next_payload(config.profile, index)
+            request_started = time.perf_counter()
             status_code, body = _post_plan(base_url, payload=payload)
+            measured_latencies_ms.append((time.perf_counter() - request_started) * 1000.0)
             statuses.append(status_code)
+            if isinstance(body, dict):
+                result_statuses.append(str(body.get("status", "")).strip().lower())
+            else:
+                result_statuses.append("")
+
             run_fp = body.get("run_fingerprint", {}) if isinstance(body, dict) else {}
             if isinstance(run_fp, dict):
                 run_mode = str(run_fp.get("run_mode", "")).strip() or "UNKNOWN"
@@ -208,24 +281,35 @@ def run_slo_drill(config: SLODrillConfig) -> dict[str, Any]:
                             "strict_external_data": run_fp.get("strict_external_data"),
                         }
                     )
+
             degrade_level = str(body.get("degrade_level", "")).strip() if isinstance(body, dict) else ""
             if degrade_level:
                 degrade_level_counts[degrade_level] = degrade_level_counts.get(degrade_level, 0) + 1
-        snapshot = _fetch_metrics(base_url)
+
+        metrics_snapshot = _fetch_metrics(base_url)
     finally:
         _stop_app(process)
 
     objectives_config = _load_json(config.objectives_file)
+    eval_snapshot = _build_eval_snapshot(
+        statuses=statuses,
+        result_statuses=result_statuses,
+        latencies_ms=measured_latencies_ms,
+        degrade_level_counts=degrade_level_counts,
+        tool_calls=dict(metrics_snapshot.get("tool_calls", {})),
+    )
     selected_profile, objectives = resolve_slo_objectives(
-        snapshot=snapshot,
+        snapshot=eval_snapshot,
         objectives_config=objectives_config,
         profile=config.profile,
     )
-    report = evaluate_slo_objectives(snapshot, objectives)
+    report = evaluate_slo_objectives(eval_snapshot, objectives)
+
     report["profile"] = selected_profile
     report["objectives_file"] = str(config.objectives_file)
     report["generated_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
     report["request_count"] = max(1, config.request_count)
+    report["warmup_request_count"] = max(0, config.warmup_requests)
     report["status_counts"] = {str(code): statuses.count(code) for code in sorted(set(statuses))}
     report["run_mode_counts"] = run_mode_counts
     report["degrade_level_counts"] = degrade_level_counts
@@ -234,6 +318,7 @@ def run_slo_drill(config: SLODrillConfig) -> dict[str, Any]:
     report["routing_provider"] = config.routing_provider
     report["env_file"] = str(config.env_file) if config.use_env_file else ""
     report["elapsed_ms"] = round((time.perf_counter() - started) * 1000.0, 2)
+    report["steady_state_p95_latency_ms"] = round(_calc_p95(measured_latencies_ms), 2)
     return report
 
 
@@ -249,6 +334,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-env-file", action="store_true", help="do not load environment variables from env-file")
     parser.add_argument("--strict-external-data", default="", choices=["", "true", "false"])
     parser.add_argument("--routing-provider", default="", choices=["", "auto", "fixture", "real"])
+    parser.add_argument("--warmup-requests", type=int, default=-1)
     parser.add_argument("--output", default=str(_DEFAULT_OUTPUT))
     return parser
 
@@ -263,6 +349,10 @@ def main(argv: list[str] | None = None) -> int:
     if str(args.routing_provider).strip():
         routing_provider = str(args.routing_provider).strip()
 
+    warmup_requests = int(args.warmup_requests)
+    if warmup_requests < 0:
+        warmup_requests = _DEFAULT_REALTIME_WARMUP_REQUESTS if profile == "realtime" else 0
+
     config = SLODrillConfig(
         host=str(args.host),
         port=max(1, int(args.port)),
@@ -274,6 +364,7 @@ def main(argv: list[str] | None = None) -> int:
         use_env_file=not bool(args.no_env_file),
         strict_external_data=bool(strict_external_data),
         routing_provider=routing_provider,
+        warmup_requests=max(0, warmup_requests),
         output_file=Path(str(args.output)),
     )
     report = run_slo_drill(config)

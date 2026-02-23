@@ -60,3 +60,9 @@ python -m tools.slo_check --metrics-json path\to\metrics_snapshot.json
   - `trip-agent-backend` scrape target `health=up`
   - 告警规则已加载（3 条）
   - Grafana 健康检查 `database=ok`
+
+## Latest SLO Verification (2026-02-23)
+
+- degraded profile: `eval/reports/slo_latest.json` -> `passed=true`
+- realtime profile: `eval/reports/slo_realtime_latest.json` -> `passed=true`, `p95_latency_ms=2567.70`, `l0_ratio=0.65`, `l3_ratio=0.0`
+- note: realtime drill now pins `--routing-provider real` in `scripts/slo-realtime-drill.ps1` to avoid `auto` fallback drift during acceptance.

@@ -251,25 +251,40 @@ def apply_text_evidence(text: str, constraints: dict, profile: dict) -> None:
 
 def apply_llm_result(result: dict, constraints: dict, profile: dict) -> None:
     """将 LLM 提取结果合并到 constraints / profile，就地更新。"""
+    def _has_explicit_value(field_name: str) -> bool:
+        value = constraints.get(field_name)
+        if value is None:
+            return False
+        if isinstance(value, str):
+            return bool(value.strip())
+        if isinstance(value, (list, tuple, dict, set)):
+            return len(value) > 0
+        return True
+
+    def _set_if_absent(field_name: str, value: object) -> None:
+        if _has_explicit_value(field_name):
+            return
+        constraints[field_name] = value
+
     if result.get("city"):
-        constraints["city"] = result["city"]
+        _set_if_absent("city", result["city"])
     if result.get("days"):
-        constraints["days"] = int(result["days"])
+        _set_if_absent("days", int(result["days"]))
     if result.get("budget_per_day"):
-        constraints["budget_per_day"] = float(result["budget_per_day"])
+        _set_if_absent("budget_per_day", float(result["budget_per_day"]))
     if result.get("total_budget"):
-        constraints["total_budget"] = float(result["total_budget"])
+        _set_if_absent("total_budget", float(result["total_budget"]))
     if result.get("pace"):
-        constraints["pace"] = result["pace"]
+        _set_if_absent("pace", result["pace"])
     if result.get("transport_mode"):
-        constraints["transport_mode"] = result["transport_mode"]
+        _set_if_absent("transport_mode", result["transport_mode"])
     if result.get("holiday_hint"):
-        constraints["holiday_hint"] = result["holiday_hint"]
+        _set_if_absent("holiday_hint", result["holiday_hint"])
     if result.get("travelers_count"):
-        constraints["travelers_count"] = int(result["travelers_count"])
-    if result.get("free_only") is not None:
+        _set_if_absent("travelers_count", int(result["travelers_count"]))
+    if result.get("free_only") is not None and not _has_explicit_value("free_only"):
         constraints["free_only"] = bool(result["free_only"])
-    if result.get("must_visit"):
+    if result.get("must_visit") and not _has_explicit_value("must_visit"):
         constraints["must_visit"] = [str(item) for item in result["must_visit"] if str(item).strip()]
     if result.get("themes"):
         existing = profile.get("themes", [])

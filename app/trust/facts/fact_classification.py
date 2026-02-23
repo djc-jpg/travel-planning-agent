@@ -146,12 +146,15 @@ def _source_type_from_hint(source_hint: str) -> str:
     return "unknown"
 
 
+def _allow_missing_for_field(*, field_name: str, source_type: str) -> bool:
+    # Some providers encode "no special closure rule" as an empty field.
+    return field_name == "closed_rules" and source_type in _VERIFIED_SOURCE_TYPES
+
+
 def classify_field(field_value: Any, source_meta: Any) -> dict[str, Any]:
     """Classify one fact field into trust type and confidence."""
-    if _is_missing_value(field_value) or _is_placeholder_value(field_value):
-        return {"source_type": "unknown", "field_confidence": 0.0}
-
     meta = _as_meta_dict(source_meta)
+    field_name = _normalized_text(meta.get("field_name"))
     if not meta or _meta_missing_fact_sources(meta):
         return {"source_type": "unknown", "field_confidence": 0.0}
     if _meta_indicates_fallback(meta):
@@ -159,6 +162,10 @@ def classify_field(field_value: Any, source_meta: Any) -> dict[str, Any]:
 
     source_type = _source_type_from_hint(_extract_source_hint(meta))
     confidence = _SOURCE_CONFIDENCE[source_type]
+    if _is_missing_value(field_value) or _is_placeholder_value(field_value):
+        if _allow_missing_for_field(field_name=field_name, source_type=source_type):
+            return {"source_type": source_type, "field_confidence": confidence * 0.85}
+        return {"source_type": "unknown", "field_confidence": 0.0}
     return {"source_type": source_type, "field_confidence": confidence}
 
 
@@ -188,6 +195,7 @@ def compute_verified_fact_ratio(itinerary: dict[str, Any]) -> float:
                     {
                         "source_type": source_hint,
                         "has_fact_sources": isinstance(fact_sources, dict),
+                        "field_name": field_name,
                     },
                 )
                 if classified["source_type"] in _VERIFIED_SOURCE_TYPES:
@@ -196,4 +204,3 @@ def compute_verified_fact_ratio(itinerary: dict[str, Any]) -> float:
 
 
 __all__ = ["CRITICAL_FACT_FIELDS", "classify_field", "compute_verified_fact_ratio"]
-

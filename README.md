@@ -423,3 +423,24 @@ python -m app.persistence.migrate
 - `docs/observability_stack.md`
 - `docs/persistence_governance.md`
 - `docs/dependency_fault_drill.md`
+
+### Product Readiness Evidence (2026-02-23)
+
+Run a full local evidence refresh:
+
+```powershell
+.\scripts\loadtest-500.ps1 -Workers 4
+.\scripts\dependency-fault-drill.ps1
+.\scripts\persistence-drill.ps1
+.\scripts\slo-drill.ps1 -Profile degraded
+.\scripts\slo-realtime-drill.ps1 -EnvFile .env.prerelease
+python -m tools.product_acceptance --full | Set-Content eval/reports/product_acceptance_latest.json
+python -m tools.product_readiness
+```
+
+Latest consolidated verdict:
+
+- `eval/reports/product_readiness_latest.json`
+- `eval/reports/product_readiness_latest.md`
+
+Current expected outcome for product-grade gate: `overall_passed=true`.

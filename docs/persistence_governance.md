@@ -34,3 +34,9 @@ python -m app.persistence.restore --backup-path data/backups/<backup_file>.sqlit
 5. 校验标记恢复。
 
 演练报告输出：`eval/reports/persistence_drill_latest.json`。
+
+## Latest Drill Result (2026-02-23)
+
+- report: `eval/reports/persistence_drill_latest.json`
+- result: `passed=true`
+- validation: baseline marker restored after corruption + restore cycle

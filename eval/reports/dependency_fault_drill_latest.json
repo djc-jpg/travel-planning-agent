@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-22T20:56:47",
+  "generated_at": "2026-02-23T01:45:07",
   "passed": true,
   "scenarios": [
     {
@@ -7,393 +7,15 @@
       "description": "No external keys in non-strict mode still returns DEGRADED response.",
       "passed": true,
       "detail": "status_code=200, status=done, run_mode=DEGRADED",
-      "elapsed_ms": 36332.84,
+      "elapsed_ms": 4447.47,
       "evidence": {
         "status_code": 200,
         "body": {
           "status": "done",
           "message": "北京2天行程亮点：第1天：天安门广场、天安门城楼、故宫博物院；第2天：正阳门城楼、景山公园、北海公园",
-          "itinerary": {
-            "city": "北京",
-            "days": [
-              {
-                "day_number": 1,
-                "date": "2026-04-01",
-                "schedule": [
-                  {
-                    "poi": {
-                      "id": "bj_tiananmen_square",
-                      "name": "天安门广场",
-                      "city": "北京",
-                      "lat": 39.903018,
-                      "lon": 116.397624,
-                      "themes": [
-                        "历史",
-                        "地标"
-                      ],
-                      "duration_hours": 1.5,
-                      "cost": 0.0,
-                      "indoor": false,
-                      "open_time": "05:00-22:00",
-                      "description": "升旗时段人流极高，建议错峰14:00后进入。",
-                      "requires_reservation": true,
-                      "reservation_days_ahead": 1,
-                      "closed_rules": "重大活动可能临时管控",
-                      "closed_weekdays": [],
-                      "source_category": "",
-                      "ticket_price": 0.0,
-                      "open_hours": "05:00-22:00",
-                      "reservation_required": true,
-                      "semantic_type": "experience",
-                      "semantic_confidence": 0.85
-                    },
-                    "time_slot": "morning",
-                    "start_time": "08:47",
-                    "end_time": "10:17",
-                    "travel_minutes": 0.0,
-                    "buffer_minutes": 17.0,
-                    "notes": "reservation_required",
-                    "is_backup": false
-                  },
-                  {
-                    "poi": {
-                      "id": "bj_tiananmen_tower",
-                      "name": "天安门城楼",
-                      "city": "北京",
-                      "lat": 39.907085,
-                      "lon": 116.397483,
-                      "themes": [
-                        "历史",
-                        "地标"
-                      ],
-                      "duration_hours": 1.0,
-                      "cost": 15.0,
-                      "indoor": false,
-                      "open_time": "08:30-16:30",
-                      "description": "需携带有效证件，安检排队建议预留40分钟。",
-                      "requires_reservation": true,
-                      "reservation_days_ahead": 3,
-                      "closed_rules": "极端天气与重大活动可能停开",
-                      "closed_weekdays": [],
-                      "source_category": "",
-                      "ticket_price": 15.0,
-                      "open_hours": "08:30-16:30",
-                      "reservation_required": true,
-                      "semantic_type": "experience",
-                      "semantic_confidence": 0.85
-                    },
-                    "time_slot": "morning",
-                    "start_time": "10:46",
-                    "end_time": "11:46",
-                    "travel_minutes": 15.3,
-                    "buffer_minutes": 14.0,
-                    "notes": "reservation_required",
-                    "is_backup": false
-                  },
-                  {
-                    "poi": {
-                      "id": "bj_forbidden_city",
-                      "name": "故宫博物院",
-                      "city": "北京",
-                      "lat": 39.916345,
-                      "lon": 116.397155,
-                      "themes": [
-                        "历史",
-                        "文化"
-                      ],
-                      "duration_hours": 3.0,
-                      "cost": 60.0,
-                      "indoor": false,
-                      "open_time": "08:30-17:00",
-                      "description": "春节高峰建议08:30前入场，预留安检与检票缓冲。",
-                      "requires_reservation": true,
-                      "reservation_days_ahead": 7,
-                      "closed_rules": "周一闭馆（法定节假日除外）",
-                      "closed_weekdays": [
-                        0
-                      ],
-                      "source_category": "",
-                      "ticket_price": 60.0,
-                      "open_hours": "08:30-17:00",
-                      "reservation_required": true,
-                      "semantic_type": "experience",
-                      "semantic_confidence": 0.85
-                    },
-                    "time_slot": "lunch",
-                    "start_time": "13:18",
-                    "end_time": "16:18",
-                    "travel_minutes": 17.6,
-                    "buffer_minutes": 26.0,
-                    "notes": "reservation_required",
-                    "is_backup": false
-                  }
-                ],
-                "backups": [
-                  {
-                    "poi": {
-                      "id": "bj_zhongshan_park",
-                      "name": "中山公园",
-                      "city": "北京",
-                      "lat": 39.908723,
-                      "lon": 116.392708,
-                      "themes": [
-                        "历史",
-                        "园林"
-                      ],
-                      "duration_hours": 1.5,
-                      "cost": 3.0,
-                      "indoor": false,
-                      "open_time": "06:00-21:00",
-                      "description": "适合作为天安门区域错峰替代点。",
-                      "requires_reservation": false,
-                      "reservation_days_ahead": 0,
-                      "closed_rules": "花展期间部分区域限流",
-                      "closed_weekdays": [],
-                      "source_category": "",
-                      "ticket_price": 3.0,
-                      "open_hours": "06:00-21:00",
-                      "reservation_required": false,
-                      "semantic_type": "experience",
-                      "semantic_confidence": 0.85
-                    },
-                    "time_slot": "afternoon",
-                    "start_time": null,
-                    "end_time": null,
-                    "travel_minutes": 0.0,
-                    "buffer_minutes": 0.0,
-                    "is_backup": true
-                  }
-                ],
-                "day_summary": "天气:晴",
-                "estimated_cost": 294.0,
-                "total_travel_minutes": 32.9,
-                "meal_windows": [
-                  "12:30-13:18"
-                ]
-              },
-              {
-                "day_number": 2,
-                "date": "2026-04-02",
-                "schedule": [
-                  {
-                    "poi": {
-                      "id": "bj_zhengyangmen_tower",
-                      "name": "正阳门城楼",
-                      "city": "北京",
-                      "lat": 39.899128,
-                      "lon": 116.396756,
-                      "themes": [
-                        "历史",
-                        "地标"
-                      ],
-                      "duration_hours": 1.0,
-                      "cost": 20.0,
-                      "indoor": false,
-                      "open_time": "09:00-17:00",
-                      "description": "与前门步行街可串联，建议15:00前入场。",
-                      "requires_reservation": false,
-                      "reservation_days_ahead": 0,
-                      "closed_rules": "周一闭馆（节假日除外）",
-                      "closed_weekdays": [
-                        0
-                      ],
-                      "source_category": "",
-                      "ticket_price": 20.0,
-                      "open_hours": "09:00-17:00",
-                      "reservation_required": false,
-                      "semantic_type": "experience",
-                      "semantic_confidence": 0.85
-                    },
-                    "time_slot": "morning",
-                    "start_time": "09:00",
-                    "end_time": "10:00",
-                    "travel_minutes": 0.0,
-                    "buffer_minutes": 10.0,
-                    "is_backup": false
-                  },
-                  {
-                    "poi": {
-                      "id": "bj_jingshan",
-                      "name": "景山公园",
-                      "city": "北京",
-                      "lat": 39.923236,
-                      "lon": 116.396144,
-                      "themes": [
-                        "历史",
-                        "自然"
-                      ],
-                      "duration_hours": 1.5,
-                      "cost": 2.0,
-                      "indoor": false,
-                      "open_time": "06:30-21:00",
-                      "description": "适合傍晚登顶拍摄故宫全景。",
-                      "requires_reservation": false,
-                      "reservation_days_ahead": 0,
-                      "closed_rules": "极端天气可能临时关闭制高点区域",
-                      "closed_weekdays": [],
-                      "source_category": "",
-                      "ticket_price": 2.0,
-                      "open_hours": "06:30-21:00",
-                      "reservation_required": false,
-                      "semantic_type": "experience",
-                      "semantic_confidence": 0.85
-                    },
-                    "time_slot": "morning",
-                    "start_time": "10:48",
-                    "end_time": "12:18",
-                    "travel_minutes": 37.7,
-                    "buffer_minutes": 10.0,
-                    "is_backup": false
-                  },
-                  {
-                    "poi": {
-                      "id": "bj_beihai",
-                      "name": "北海公园",
-                      "city": "北京",
-                      "lat": 39.925639,
-                      "lon": 116.389526,
-                      "themes": [
-                        "历史",
-                        "园林",
-                        "自然"
-                      ],
-                      "duration_hours": 2.0,
-                      "cost": 10.0,
-                      "indoor": false,
-                      "open_time": "06:00-21:00",
-                      "description": "春节游船项目可能排队，建议避开午后高峰。",
-                      "requires_reservation": false,
-                      "reservation_days_ahead": 0,
-                      "closed_rules": "冰面与部分区域按季节管控",
-                      "closed_weekdays": [],
-                      "source_category": "",
-                      "ticket_price": 10.0,
-                      "open_hours": "06:00-21:00",
-                      "reservation_required": false,
-                      "semantic_type": "experience",
-                      "semantic_confidence": 0.85
-                    },
-                    "time_slot": "afternoon",
-                    "start_time": "13:41",
-                    "end_time": "15:41",
-                    "travel_minutes": 23.2,
-                    "buffer_minutes": 12.0,
-                    "is_backup": false
-                  }
-                ],
-                "backups": [
-                  {
-                    "poi": {
-                      "id": "bj_lao_she_memorial",
-                      "name": "老舍故居",
-                      "city": "北京",
-                      "lat": 39.925167,
-                      "lon": 116.417442,
-                      "themes": [
-                        "历史",
-                        "文化"
-                      ],
-                      "duration_hours": 1.0,
-                      "cost": 0.0,
-                      "indoor": false,
-                      "open_time": "09:00-16:30",
-                      "description": "闭馆前1小时停止入场。",
-                      "requires_reservation": false,
-                      "reservation_days_ahead": 0,
-                      "closed_rules": "周一闭馆",
-                      "closed_weekdays": [
-                        0
-                      ],
-                      "source_category": "",
-                      "ticket_price": 0.0,
-                      "open_hours": "09:00-16:30",
-                      "reservation_required": false,
-                      "semantic_type": "experience",
-                      "semantic_confidence": 0.85
-                    },
-                    "time_slot": "afternoon",
-                    "start_time": null,
-                    "end_time": null,
-                    "travel_minutes": 0.0,
-                    "buffer_minutes": 0.0,
-                    "is_backup": true
-                  }
-                ],
-                "day_summary": "天气:晴",
-                "estimated_cost": 208.0,
-                "total_travel_minutes": 60.9,
-                "meal_windows": [
-                  "12:53-13:41"
-                ]
-              }
-            ],
-            "total_cost": 502.0,
-            "assumptions": [
-              "preference_reranked=true",
-              "persona=default max_pois=5",
-              "persona_profile=default",
-              "day_template_diversity:中山公园->正阳门城楼",
-              "routing_confidence=0.90"
-            ],
-            "summary": "北京2天行程亮点：第1天：天安门广场、天安门城楼、故宫博物院；第2天：正阳门城楼、景山公园、北海公园",
-            "budget_breakdown": {
-              "tickets": 214.0,
-              "local_transport": 48.0,
-              "food_min": 240.0
-            },
-            "budget_source_breakdown": {
-              "tickets": "curated",
-              "local_transport": "heuristic",
-              "food_min": "heuristic"
-            },
-            "budget_confidence_breakdown": {
-              "tickets": 0.85,
-              "local_transport": 0.55,
-              "food_min": 0.55
-            },
-            "budget_confidence_score": 0.6779,
-            "budget_as_of": "2026-02-22",
-            "minimum_feasible_budget": 502.0,
-            "budget_warning": ""
-          },
-          "session_id": "0e31eb6c",
-          "request_id": "24067223-dd9",
-          "trace_id": "0010ea52-649",
+          "detail": "",
           "degrade_level": "L1",
-          "confidence_score": 0.7,
-          "issues": [],
-          "next_questions": [],
-          "field_evidence": {
-            "city": {
-              "field": "city",
-              "source": "user_text",
-              "value": "北京"
-            },
-            "days": {
-              "field": "days",
-              "source": "user_text",
-              "value": 2
-            },
-            "date_start": {
-              "field": "date_start",
-              "source": "user_form",
-              "value": "2026-04-01"
-            },
-            "date_end": {
-              "field": "date_end",
-              "source": "user_form",
-              "value": "2026-04-02"
-            }
-          },
-          "run_fingerprint": {
-            "run_mode": "DEGRADED",
-            "poi_provider": "amap",
-            "route_provider": "fixture",
-            "llm_provider": "dashscope",
-            "strict_external_data": false,
-            "env_source": ".env",
-            "trace_id": "0010ea52-649"
-          }
+          "run_mode": "DEGRADED"
         }
       }
     },
@@ -401,12 +23,16 @@
       "name": "strict_external_fail_fast",
       "description": "Strict external mode without keys must fail fast with controlled error.",
       "passed": true,
-      "detail": "status_code=422, detail=抱歉，遇到了意料之外的问题，请稍后重试或换个说法描述需求。\n\n💡 你可以试试：\n  • '我想去北京玩3天，喜欢历史和美食'\n  • '杭州2日游，预算每天500元'\n  • '成都5天亲子游，轻松节奏'",
-      "elapsed_ms": 8306.51,
+      "detail": "status_code=500, detail=规划过程出错，请稍后重试",
+      "elapsed_ms": 4412.28,
       "evidence": {
-        "status_code": 422,
+        "status_code": 500,
         "body": {
-          "detail": "抱歉，遇到了意料之外的问题，请稍后重试或换个说法描述需求。\n\n💡 你可以试试：\n  • '我想去北京玩3天，喜欢历史和美食'\n  • '杭州2日游，预算每天500元'\n  • '成都5天亲子游，轻松节奏'"
+          "status": null,
+          "message": "",
+          "detail": "规划过程出错，请稍后重试",
+          "degrade_level": null,
+          "run_mode": null
         }
       }
     },
@@ -415,11 +41,15 @@
       "description": "Injected upstream timeout should produce controlled 4xx business failure (not 5xx).",
       "passed": true,
       "detail": "status_code=422, detail=抱歉，遇到了意料之外的问题，请稍后重试或换个说法描述需求。\n\n💡 你可以试试：\n  • '我想去北京玩3天，喜欢历史和美食'\n  • '杭州2日游，预算每天500元'\n  • '成都5天亲子游，轻松节奏'",
-      "elapsed_ms": 27567.15,
+      "elapsed_ms": 4039.78,
       "evidence": {
         "status_code": 422,
         "body": {
-          "detail": "抱歉，遇到了意料之外的问题，请稍后重试或换个说法描述需求。\n\n💡 你可以试试：\n  • '我想去北京玩3天，喜欢历史和美食'\n  • '杭州2日游，预算每天500元'\n  • '成都5天亲子游，轻松节奏'"
+          "status": null,
+          "message": "",
+          "detail": "抱歉，遇到了意料之外的问题，请稍后重试或换个说法描述需求。\n\n💡 你可以试试：\n  • '我想去北京玩3天，喜欢历史和美食'\n  • '杭州2日游，预算每天500元'\n  • '成都5天亲子游，轻松节奏'",
+          "degrade_level": null,
+          "run_mode": null
         }
       }
     },
@@ -428,11 +58,15 @@
       "description": "Injected upstream 429 should produce controlled business failure (not crash).",
       "passed": true,
       "detail": "status_code=422, detail=抱歉，遇到了意料之外的问题，请稍后重试或换个说法描述需求。\n\n💡 你可以试试：\n  • '我想去北京玩3天，喜欢历史和美食'\n  • '杭州2日游，预算每天500元'\n  • '成都5天亲子游，轻松节奏'",
-      "elapsed_ms": 29057.45,
+      "elapsed_ms": 3937.2,
       "evidence": {
         "status_code": 422,
         "body": {
-          "detail": "抱歉，遇到了意料之外的问题，请稍后重试或换个说法描述需求。\n\n💡 你可以试试：\n  • '我想去北京玩3天，喜欢历史和美食'\n  • '杭州2日游，预算每天500元'\n  • '成都5天亲子游，轻松节奏'"
+          "status": null,
+          "message": "",
+          "detail": "抱歉，遇到了意料之外的问题，请稍后重试或换个说法描述需求。\n\n💡 你可以试试：\n  • '我想去北京玩3天，喜欢历史和美食'\n  • '杭州2日游，预算每天500元'\n  • '成都5天亲子游，轻松节奏'",
+          "degrade_level": null,
+          "run_mode": null
         }
       }
     },
@@ -441,7 +75,7 @@
       "description": "API-level rate limiter should return 429 under burst traffic.",
       "passed": true,
       "detail": "statuses=[200, 200, 429, 429, 429, 429]",
-      "elapsed_ms": 27992.09,
+      "elapsed_ms": 3865.26,
       "evidence": {
         "statuses": [
           200,

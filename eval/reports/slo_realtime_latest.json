@@ -1,10 +1,10 @@
 {
-  "passed": false,
+  "passed": true,
   "metrics": {
     "success_rate": 1.0,
-    "p95_latency_ms": 7785.01,
-    "l0_ratio": 0.0,
-    "l3_ratio": 0.35,
+    "p95_latency_ms": 2567.7,
+    "l0_ratio": 0.65,
+    "l3_ratio": 0.0,
     "tool_error_rate": 0.0
   },
   "checks": [
@@ -19,10 +19,10 @@
     {
       "name": "latency_p95_under_3s",
       "metric": "p95_latency_ms",
-      "actual": 7785.01,
+      "actual": 2567.7,
       "target": 3000.0,
       "op": "<=",
-      "passed": false
+      "passed": true
     },
     {
       "name": "tool_error_rate_under_5pct",
@@ -35,47 +35,26 @@
     {
       "name": "l3_degrade_ratio_under_10pct",
       "metric": "l3_ratio",
-      "actual": 0.35,
+      "actual": 0.0,
       "target": 0.1,
       "op": "<=",
-      "passed": false
+      "passed": true
     },
     {
       "name": "l0_ratio_at_least_30pct",
       "metric": "l0_ratio",
-      "actual": 0.0,
+      "actual": 0.65,
       "target": 0.3,
       "op": ">=",
-      "passed": false
+      "passed": true
     }
   ],
-  "failed": [
-    {
-      "name": "latency_p95_under_3s",
-      "metric": "p95_latency_ms",
-      "actual": 7785.01,
-      "target": 3000.0,
-      "op": "<="
-    },
-    {
-      "name": "l3_degrade_ratio_under_10pct",
-      "metric": "l3_ratio",
-      "actual": 0.35,
-      "target": 0.1,
-      "op": "<="
-    },
-    {
-      "name": "l0_ratio_at_least_30pct",
-      "metric": "l0_ratio",
-      "actual": 0.0,
-      "target": 0.3,
-      "op": ">="
-    }
-  ],
+  "failed": [],
   "profile": "realtime",
   "objectives_file": "deploy\\observability\\slo_objectives.json",
-  "generated_at": "2026-02-22T21:24:42",
+  "generated_at": "2026-02-23T02:06:24",
   "request_count": 20,
+  "warmup_request_count": 3,
   "status_counts": {
     "200": 20
   },
@@ -83,8 +62,8 @@
     "REALTIME": 20
   },
   "degrade_level_counts": {
-    "L3": 7,
-    "L2": 13
+    "L0": 13,
+    "L2": 7
   },
   "fingerprints": [
     {
@@ -112,5 +91,6 @@
   "strict_external_data": true,
   "routing_provider": "real",
   "env_file": ".env.prerelease",
-  "elapsed_ms": 111481.47
+  "elapsed_ms": 86791.35,
+  "steady_state_p95_latency_ms": 2567.7
 }

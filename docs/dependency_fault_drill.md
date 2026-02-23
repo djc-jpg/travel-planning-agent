@@ -26,3 +26,13 @@ python -m app.deploy.dependency_fault_drill
   - `passed`
   - `scenarios[].passed`
   - `scenarios[].detail`
+
+## Latest Drill Result (2026-02-23)
+
+- report: `eval/reports/dependency_fault_drill_latest.json`
+- overall: `passed=true`
+- scenario count: `5/5` passed
+- highlights:
+  - strict external without keys returns controlled fail-fast response
+  - injected timeout and injected rate-limit faults return controlled business errors
+  - API-level limiter returns `429` under burst traffic

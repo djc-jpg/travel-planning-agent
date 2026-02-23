@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from app.parsing.regex_extractors import (
@@ -28,6 +29,19 @@ _THEME_KEYWORDS = THEME_KEYWORDS
 _extract_city = extract_city
 _extract_days = extract_days
 _extract_budget = extract_budget
+
+
+def _is_enabled(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _use_llm_extract() -> bool:
+    # In strict external mode we default to deterministic extraction for latency stability.
+    strict_external = _is_enabled("STRICT_EXTERNAL_DATA", default=False)
+    return _is_enabled("INTAKE_LLM_ENABLED", default=not strict_external)
 
 
 def _llm_extract(text: str) -> dict | None:
@@ -103,7 +117,7 @@ def intake_node(state: dict[str, Any]) -> dict[str, Any]:
         p = profile.model_dump() if hasattr(profile, "model_dump") else dict(profile)
 
     # ── 尝试 LLM 提取 ──
-    llm_result = _llm_extract(last_msg)
+    llm_result = _llm_extract(last_msg) if _use_llm_extract() else None
 
     if llm_result and isinstance(llm_result, dict):
         apply_llm_result(llm_result, c, p)
