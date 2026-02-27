@@ -2,6 +2,150 @@
 
 基于 **LangGraph** 状态机 + **Pydantic** 强类型 + 规则验证器的旅行行程规划 Agent。
 
+## 完整启动流程（对齐当前系统）
+
+> 本节是主入口，覆盖产品本地运行、预发布演练、以及无 Docker 本地运行三条路径。
+
+### 0. 前置条件
+
+- 在仓库根目录执行命令（含 `README.md`、`docker-compose.yml` 的目录）
+- Docker 路径需要本机已启动 Docker Engine（`docker version` 可用）
+- 无 Docker 路径需要本机可用 `Python 3.13+`、`Node 20+`、`npm`
+- 默认端口：前端 `3000`，后端 `8000`
+
+### 1. 启动路径一览
+
+| 路径 | 适用场景 | 核心命令 |
+|------|----------|----------|
+| A. 产品本地（默认） | 日常联调、功能验证 | `docker compose up --build -d` |
+| B. 预发布（脚本化） | 预发布配置校验、回滚演练 | `.\scripts\prerelease.ps1` |
+| C. 无 Docker 本地 | Docker 不可用时本机联调 | `uvicorn` + `npm run dev` |
+
+### 2. 路径 A：产品本地（`docker-compose.yml`）
+
+1. 复制环境变量模板：
+
+```bash
+cp .env.example .env
+```
+
+2. 启动服务：
+
+```bash
+docker compose up --build -d
+```
+
+默认会启动 `backend` + `frontend`。  
+如需同时拉起 Redis（基础设施 profile）：
+
+```bash
+docker compose --profile infra up --build -d
+```
+
+3. 检查容器状态：
+
+```bash
+docker compose ps
+```
+
+- 默认预期：`backend`、`frontend` 为 `running`
+- 启用 `infra` profile 后：`backend`、`frontend`、`redis` 为 `running`
+
+4. 验证可用性：
+
+- 前端页面：`http://localhost:3000`
+- 后端健康检查：`http://localhost:8000/health`
+- 前端代理后端：`http://localhost:3000/api/backend/health`
+
+5. 查看日志：
+
+```bash
+docker compose logs -f backend
+docker compose logs -f frontend
+```
+
+6. 停止服务：
+
+```bash
+docker compose down
+```
+
+同时删除卷数据：
+
+```bash
+docker compose down -v
+```
+
+### 3. 路径 B：预发布（`docker-compose.prerelease.yml` + scripts）
+
+1. 复制预发布环境模板：
+
+```bash
+cp .env.prerelease.example .env.prerelease
+```
+
+2. 拉起预发布栈并执行 preflight：
+
+```powershell
+.\scripts\prerelease.ps1
+```
+
+3. 停止预发布栈：
+
+```powershell
+.\scripts\prerelease-down.ps1
+```
+
+4. 无 Docker 的预发布本地检查：
+
+```powershell
+.\scripts\prerelease-local.ps1
+```
+
+默认允许单机内存后端回退；如要求 Redis 必须可用：
+
+```powershell
+.\scripts\prerelease-local.ps1 -StrictRedis
+```
+
+5. 预发布灰度/回滚演练：
+
+```powershell
+.\scripts\prerelease-rollout.ps1
+.\scripts\prerelease-rollback.ps1
+```
+
+### 4. 路径 C：无 Docker 本地启动（前后端）
+
+后端：
+
+```bash
+cp .env.example .env
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.api.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+前端（新终端）：
+
+```bash
+cd frontend
+cp .env.example .env.local
+npm install
+npm run dev
+```
+
+- 前端默认地址：`http://localhost:3000`
+- 端口占用时可改为：`npm run dev -- -p 3100`
+- 若改为 `3100`，后端检查地址为：`http://localhost:3100/api/backend/health`
+
+### 5. 常见问题
+
+- Docker Hub 拉取镜像超时：重试 `docker compose up --build -d`，或先走路径 C 本地启动。
+- `3000` 端口被占用：前端改用 `npm run dev -- -p 3100`。
+- 后端返回 `503`：检查 `API_BEARER_TOKEN` 与 `ALLOW_UNAUTHENTICATED_API` 组合是否符合当前环境预期。
+
 ## 功能特色
 
 - 🧠 **LLM 智能模式**：接入通义千问（DashScope）/ OpenAI，自动生成旅行文案、智能解析用户意图
@@ -352,6 +496,7 @@ Emergency rollback to stable flags (`ENGINE_VERSION=v1`, `STRICT_REQUIRED_FIELDS
 ## Product Quick Start (Stage 1)
 
 This repo now provides a default `docker-compose.yml` for product-style local startup.
+For the full end-to-end startup matrix, see `## 完整启动流程（对齐当前系统）` at the top of this document.
 
 1. Copy local env template:
 
@@ -362,7 +507,13 @@ cp .env.example .env
 2. Start backend + frontend:
 
 ```bash
-docker compose up --build
+docker compose up --build -d
+```
+
+Optional infra profile (include Redis):
+
+```bash
+docker compose --profile infra up --build -d
 ```
 
 3. Open services:
